@@ -2,11 +2,13 @@ import { fetchWeatherApi } from "openmeteo";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+// Input config for selecting the forecast location.
 type WeatherConfig = {
   latitude: number;
   longitude: number;
 };
 
+// Final aggregated metrics returned by this summary script.
 type DaySummary = {
   date: string;
   sunrise: string;
@@ -18,6 +20,7 @@ type DaySummary = {
   daylightWindGustKmh: { max: number };
 };
 
+// Load latitude/longitude from config/weather.config.json.
 async function loadConfig(): Promise<WeatherConfig> {
   const configPath = path.resolve(process.cwd(), "config", "weather.config.json");
   const raw = await readFile(configPath, "utf-8");
@@ -30,18 +33,22 @@ async function loadConfig(): Promise<WeatherConfig> {
   return parsed;
 }
 
+// Utility to get min and max from numeric arrays.
 function minMax(values: number[]): { min: number; max: number } {
   return { min: Math.min(...values), max: Math.max(...values) };
 }
 
+// Utility to compute arithmetic mean for numeric arrays.
 function average(values: number[]): number {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+// Round output values for cleaner JSON output.
 function toRounded(value: number): number {
   return Number(value.toFixed(2));
 }
 
+// Build and run the Open-Meteo request using configured location.
 const config = await loadConfig();
 
 const params = {
@@ -63,6 +70,7 @@ const url = "https://api.open-meteo.com/v1/forecast";
 const responses = await fetchWeatherApi(url, params);
 const response = responses[0];
 
+// Prepare hourly arrays for weather variables we need to aggregate.
 const utcOffsetSeconds = response.utcOffsetSeconds();
 
 const hourly = response.hourly();
@@ -82,8 +90,10 @@ const rainStrength = Array.from(hourly.variables(3)!.valuesArray());
 const windSpeed = Array.from(hourly.variables(4)!.valuesArray());
 const windGust = Array.from(hourly.variables(5)!.valuesArray());
 
+// Use the first available hourly row to determine the target summary day.
 const targetDate = hourlyTimes[0].toISOString().slice(0, 10);
 
+// Read daily sunrise/sunset and match the same target date.
 const daily = response.daily();
 if (!daily) {
   throw new Error("Missing daily weather data in API response.");
@@ -110,6 +120,7 @@ if (sunriseRaw === null || sunsetRaw === null) {
 const sunrise = new Date(Number(sunriseRaw) * 1000 + utcOffsetSeconds * 1000);
 const sunset = new Date(Number(sunsetRaw) * 1000 + utcOffsetSeconds * 1000);
 
+// Build index sets for full-day rows and daylight-only rows.
 const dayIndexes = hourlyTimes
   .map((t, index) => ({ index, date: t.toISOString().slice(0, 10) }))
   .filter((x) => x.date === targetDate)
@@ -124,6 +135,7 @@ if (dayIndexes.length === 0 || daylightIndexes.length === 0) {
   throw new Error("No hourly rows found for selected day/daylight window.");
 }
 
+// Slice raw hourly arrays down to the windows needed by each metric.
 const daylightTemperature = daylightIndexes.map((i) => temperature[i]);
 const daylightHumidity = daylightIndexes.map((i) => humidity[i]);
 const daylightWindSpeed = daylightIndexes.map((i) => windSpeed[i]);
@@ -132,6 +144,7 @@ const daylightWindGust = daylightIndexes.map((i) => windGust[i]);
 const dayRainChance = dayIndexes.map((i) => rainChance[i]);
 const dayRainStrength = dayIndexes.map((i) => rainStrength[i]);
 
+// Aggregate filtered weather data into the final summary payload.
 const summary: DaySummary = {
   date: targetDate,
   sunrise: sunrise.toISOString(),
@@ -156,4 +169,5 @@ const summary: DaySummary = {
   },
 };
 
+// Print structured JSON for downstream app/API usage.
 console.log(JSON.stringify(summary, null, 2));

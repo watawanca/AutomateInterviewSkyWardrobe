@@ -1,0 +1,159 @@
+import { fetchWeatherApi } from "openmeteo";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+type WeatherConfig = {
+  latitude: number;
+  longitude: number;
+};
+
+type DaySummary = {
+  date: string;
+  sunrise: string;
+  sunset: string;
+  daylightTemperatureC: { min: number; max: number };
+  daylightHumidityPct: { average: number };
+  dailyRain: { maxChancePct: number; maxStrengthMmPerHour: number };
+  daylightWindSpeedKmh: { min: number; max: number };
+  daylightWindGustKmh: { max: number };
+};
+
+async function loadConfig(): Promise<WeatherConfig> {
+  const configPath = path.resolve(process.cwd(), "config", "weather.config.json");
+  const raw = await readFile(configPath, "utf-8");
+  const parsed = JSON.parse(raw) as WeatherConfig;
+
+  if (typeof parsed.latitude !== "number" || typeof parsed.longitude !== "number") {
+    throw new Error("config/weather.config.json must include numeric latitude and longitude.");
+  }
+
+  return parsed;
+}
+
+function minMax(values: number[]): { min: number; max: number } {
+  return { min: Math.min(...values), max: Math.max(...values) };
+}
+
+function average(values: number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function toRounded(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+const config = await loadConfig();
+
+const params = {
+  latitude: config.latitude,
+  longitude: config.longitude,
+  hourly: [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "precipitation_probability",
+    "precipitation",
+    "wind_speed_10m",
+    "wind_gusts_10m",
+  ],
+  daily: ["sunrise", "sunset"],
+  timezone: "auto",
+};
+
+const url = "https://api.open-meteo.com/v1/forecast";
+const responses = await fetchWeatherApi(url, params);
+const response = responses[0];
+
+const utcOffsetSeconds = response.utcOffsetSeconds();
+
+const hourly = response.hourly();
+if (!hourly) {
+  throw new Error("Missing hourly weather data in API response.");
+}
+
+const hourlyLength = (Number(hourly.timeEnd()) - Number(hourly.time())) / hourly.interval();
+const hourlyTimes = Array.from({ length: hourlyLength }, (_, i) =>
+  new Date((Number(hourly.time()) + i * hourly.interval() + utcOffsetSeconds) * 1000),
+);
+
+const temperature = Array.from(hourly.variables(0)!.valuesArray());
+const humidity = Array.from(hourly.variables(1)!.valuesArray());
+const rainChance = Array.from(hourly.variables(2)!.valuesArray());
+const rainStrength = Array.from(hourly.variables(3)!.valuesArray());
+const windSpeed = Array.from(hourly.variables(4)!.valuesArray());
+const windGust = Array.from(hourly.variables(5)!.valuesArray());
+
+const targetDate = hourlyTimes[0].toISOString().slice(0, 10);
+
+const daily = response.daily();
+if (!daily) {
+  throw new Error("Missing daily weather data in API response.");
+}
+
+const dailyLength = (Number(daily.timeEnd()) - Number(daily.time())) / daily.interval();
+const dailyDates = Array.from({ length: dailyLength }, (_, i) =>
+  new Date((Number(daily.time()) + i * daily.interval() + utcOffsetSeconds) * 1000)
+    .toISOString()
+    .slice(0, 10),
+);
+
+const dayIndex = dailyDates.findIndex((d) => d === targetDate);
+if (dayIndex === -1) {
+  throw new Error(`Could not match daily sunrise/sunset data for date ${targetDate}.`);
+}
+
+const sunriseRaw = daily.variables(0)!.valuesInt64(dayIndex);
+const sunsetRaw = daily.variables(1)!.valuesInt64(dayIndex);
+if (sunriseRaw === null || sunsetRaw === null) {
+  throw new Error(`Missing sunrise/sunset values for date index ${dayIndex}.`);
+}
+
+const sunrise = new Date(Number(sunriseRaw) * 1000 + utcOffsetSeconds * 1000);
+const sunset = new Date(Number(sunsetRaw) * 1000 + utcOffsetSeconds * 1000);
+
+const dayIndexes = hourlyTimes
+  .map((t, index) => ({ index, date: t.toISOString().slice(0, 10) }))
+  .filter((x) => x.date === targetDate)
+  .map((x) => x.index);
+
+const daylightIndexes = hourlyTimes
+  .map((t, index) => ({ index, time: t }))
+  .filter((x) => x.time >= sunrise && x.time <= sunset)
+  .map((x) => x.index);
+
+if (dayIndexes.length === 0 || daylightIndexes.length === 0) {
+  throw new Error("No hourly rows found for selected day/daylight window.");
+}
+
+const daylightTemperature = daylightIndexes.map((i) => temperature[i]);
+const daylightHumidity = daylightIndexes.map((i) => humidity[i]);
+const daylightWindSpeed = daylightIndexes.map((i) => windSpeed[i]);
+const daylightWindGust = daylightIndexes.map((i) => windGust[i]);
+
+const dayRainChance = dayIndexes.map((i) => rainChance[i]);
+const dayRainStrength = dayIndexes.map((i) => rainStrength[i]);
+
+const summary: DaySummary = {
+  date: targetDate,
+  sunrise: sunrise.toISOString(),
+  sunset: sunset.toISOString(),
+  daylightTemperatureC: {
+    min: toRounded(minMax(daylightTemperature).min),
+    max: toRounded(minMax(daylightTemperature).max),
+  },
+  daylightHumidityPct: {
+    average: toRounded(average(daylightHumidity)),
+  },
+  dailyRain: {
+    maxChancePct: toRounded(Math.max(...dayRainChance)),
+    maxStrengthMmPerHour: toRounded(Math.max(...dayRainStrength)),
+  },
+  daylightWindSpeedKmh: {
+    min: toRounded(minMax(daylightWindSpeed).min),
+    max: toRounded(minMax(daylightWindSpeed).max),
+  },
+  daylightWindGustKmh: {
+    max: toRounded(Math.max(...daylightWindGust)),
+  },
+};
+
+console.log(JSON.stringify(summary, null, 2));

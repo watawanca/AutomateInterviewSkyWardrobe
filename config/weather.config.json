@@ -1,0 +1,12 @@
+{
+  "latitude": -33.8688,
+  "longitude": 151.2093,
+  "hourly": [
+    "relative_humidity_2m",
+    "precipitation_probability",
+    "precipitation",
+    "wind_speed_10m",
+    "temperature_2m",
+    "wind_gusts_10m"
+  ]
+}

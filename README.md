@@ -21,21 +21,22 @@ Key things to note:
 How you define the thresholds for specific weather categories (e.g., "cold" vs. "chilly").
 
 # NOTES FOR FUTURE ME:
-Warmth stacks with layers. 
-- Take the average of the upper and lower clothes to get the warmth of one layer.
-- Then add all layers together to get the total warmth.
-- So if the max and min temp are in different bands:
-    - Have it such that the outermost layer is the one that matches the max warmth band; 
-    - and the innermost layer is the one that matches the min warmth band.
-Breathability stacks with layers, in much the same manner.
-Windchill prevention does not stack. 
-- Take the max of all clothes to get the total windchill prevention.
-Water resistance does not stack. 
-- Same as windchill prevention
+1. Warmth stacks with layers. 
+    - Take the average of the upper and lower clothes to get the warmth of one layer.
+    - Then add all layers together to get the total warmth.
+    - So if the max and min temp are in different bands:
+        - Have it such that the outermost layer is the one that matches the max warmth band; 
+        - and the innermost layer is the one that matches the min warmth band.
+2. Breathability stacks with layers, in much the same manner.
+3. Windchill prevention does not stack. 
+    - Take the max of all clothes to get the total windchill prevention.
+4. Water resistance does not stack. 
+    - Same as windchill prevention
 
 # Future additions:
-Use the complements property to match clothes
-Use Formality to filter
-Add a 'vibe' property to the clothing items
-Graphics for the clothing items, and use those in the UI
-Allow user to modify database and preferences through the UI, and save those changes to the files
+- UI + GUI
+- Allow user to modify database and preferences through the UI, and save those changes to the files
+- Graphics for the clothing items, and use those in the UI
+- Use the complements property to match clothes
+- Use Formality to filter
+- Add a 'vibe' property to the clothing items

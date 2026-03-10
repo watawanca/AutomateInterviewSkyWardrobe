@@ -1,8 +1,0 @@
-Problem 2: SkyWardrobe (Real-Time Weather Advisor)
-This challenge requires you to build a lifestyle utility service that bridges the gap between live environmental data and daily user needs. You will create an application that fetches real-time weather metrics and processes them through a custom logic engine to provide context-aware clothing recommendations for the user.
-Core Requirements:
-Data Integration: Fetch live weather data (temperature, humidity, precipitation) from a public API like OpenWeatherMap.
-Recommendation Engine: Map weather states to a local dataset (JSON or Database) of clothing items to generate a logical "Outfit of the Day."
-Resiliency: Implement a fallback strategy for when the third-party API is unreachable or rate-limited.
-Key things to note:
-How you define the thresholds for specific weather categories (e.g., "cold" vs. "chilly").

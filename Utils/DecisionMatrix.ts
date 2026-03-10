@@ -61,7 +61,10 @@ async function recommendClothing(): Promise<ClothingItem[]> {
     - Gender
     - Formality
     - Complements
-  */
+
+  REFER TO README
+  
+    */
   
   return [];
 }

@@ -1,0 +1,10 @@
+Due to my lack of skill in  programming with TS, I have used AI to do the following:
+1. Use the data from the code snippet OpenMeteo.TS to create a summary
+2. Set up TS (i.e. dist, node_modules, etc.)
+
+I also used AI to speed up the execution of the following tasks:
+1. Formulate the clothing database
+2. Setup both config files
+
+I have used AI to do tasks that I believed were beyond my current capability, and to do tasks that I could have done but would have taken too long.
+However, I promise you that I will improve in both programming and TS, so that I can make this sort of thing without needing AI.

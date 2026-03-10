@@ -9,7 +9,7 @@ type WeatherConfig = {
 };
 
 // Final aggregated metrics returned by this summary script.
-type DaySummary = {
+export type DaySummary = {
   date: string;
   sunrise: string;
   sunset: string;
@@ -48,6 +48,30 @@ function toRounded(value: number): number {
   return Number(value.toFixed(2));
 }
 
+// Open-Meteo may omit a variable or return a null backing array, so validate
+// each hourly variable before converting it into a normal number[].
+function getHourlyValues(hourlyData: NonNullable<typeof hourly>, index: number, variableName: string): number[] {
+  const variable = hourlyData.variables(index);
+  const values = variable?.valuesArray();
+  if (!values) {
+    throw new Error(`Missing ${variableName} values in hourly API response.`);
+  }
+
+  return Array.from(values);
+}
+
+// Daily sunrise/sunset values are exposed as int64 timestamps rather than a
+// float array, so this helper validates and extracts one day-specific value.
+function getDailyInt64Value(dailyData: NonNullable<typeof daily>, index: number, dayIndex: number, variableName: string): bigint {
+  const variable = dailyData.variables(index);
+  const value = variable?.valuesInt64(dayIndex);
+  if (value === null || value === undefined) {
+    throw new Error(`Missing ${variableName} value for date index ${dayIndex}.`);
+  }
+
+  return value;
+}
+
 // Build and run the Open-Meteo request using configured location.
 const config = await loadConfig();
 
@@ -83,12 +107,13 @@ const hourlyTimes = Array.from({ length: hourlyLength }, (_, i) =>
   new Date((Number(hourly.time()) + i * hourly.interval() + utcOffsetSeconds) * 1000),
 );
 
-const temperature = Array.from(hourly.variables(0)!.valuesArray());
-const humidity = Array.from(hourly.variables(1)!.valuesArray());
-const rainChance = Array.from(hourly.variables(2)!.valuesArray());
-const rainStrength = Array.from(hourly.variables(3)!.valuesArray());
-const windSpeed = Array.from(hourly.variables(4)!.valuesArray());
-const windGust = Array.from(hourly.variables(5)!.valuesArray());
+// Read the requested hourly variables in the same order they were requested in params.hourly.
+const temperature = getHourlyValues(hourly, 0, "temperature_2m");
+const humidity = getHourlyValues(hourly, 1, "relative_humidity_2m");
+const rainChance = getHourlyValues(hourly, 2, "precipitation_probability");
+const rainStrength = getHourlyValues(hourly, 3, "precipitation");
+const windSpeed = getHourlyValues(hourly, 4, "wind_speed_10m");
+const windGust = getHourlyValues(hourly, 5, "wind_gusts_10m");
 
 // Use the first available hourly row to determine the target summary day.
 const targetDate = hourlyTimes[0].toISOString().slice(0, 10);
@@ -111,11 +136,9 @@ if (dayIndex === -1) {
   throw new Error(`Could not match daily sunrise/sunset data for date ${targetDate}.`);
 }
 
-const sunriseRaw = daily.variables(0)!.valuesInt64(dayIndex);
-const sunsetRaw = daily.variables(1)!.valuesInt64(dayIndex);
-if (sunriseRaw === null || sunsetRaw === null) {
-  throw new Error(`Missing sunrise/sunset values for date index ${dayIndex}.`);
-}
+// Pull sunrise/sunset timestamps for the matched day and convert them to Date objects.
+const sunriseRaw = getDailyInt64Value(daily, 0, dayIndex, "sunrise");
+const sunsetRaw = getDailyInt64Value(daily, 1, dayIndex, "sunset");
 
 const sunrise = new Date(Number(sunriseRaw) * 1000 + utcOffsetSeconds * 1000);
 const sunset = new Date(Number(sunsetRaw) * 1000 + utcOffsetSeconds * 1000);

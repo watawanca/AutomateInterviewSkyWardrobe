@@ -15,7 +15,7 @@ export type DaySummary = {
   sunset: string;
   daylightTemperatureC: { min: number; max: number };
   daylightHumidityPct: { average: number };
-  dailyRain: { maxChancePct: number; maxStrengthMmPerHour: number };
+  dailyRain: { maxChancePct: number; maxStrengthMmPerHour: number; totalDepthMm: number };
   daylightWindSpeedKmh: { min: number; max: number };
   daylightWindGustKmh: { max: number };
 };
@@ -166,6 +166,7 @@ const daylightWindGust = daylightIndexes.map((i) => windGust[i]);
 
 const dayRainChance = dayIndexes.map((i) => rainChance[i]);
 const dayRainStrength = dayIndexes.map((i) => rainStrength[i]);
+const dayRainTotal = dayRainStrength.reduce((sum, value) => sum + value, 0);
 
 // Aggregate filtered weather data into the final summary payload.
 const summary: DaySummary = {
@@ -182,6 +183,7 @@ const summary: DaySummary = {
   dailyRain: {
     maxChancePct: toRounded(Math.max(...dayRainChance)),
     maxStrengthMmPerHour: toRounded(Math.max(...dayRainStrength)),
+    totalDepthMm: toRounded(dayRainTotal),
   },
   daylightWindSpeedKmh: {
     min: toRounded(minMax(daylightWindSpeed).min),

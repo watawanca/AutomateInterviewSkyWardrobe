@@ -8,6 +8,7 @@
     "Windchill prevention and water resistance mappings follow the same overlapping-band approach."
   ],
   "temperatureUnit": "C",
+  "gender": "male",
   "userPreferenceOffsetsC": {
     "runsCold": 4,
     "neutral": 0,

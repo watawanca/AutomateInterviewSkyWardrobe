@@ -1,5 +1,5 @@
 import { fetchWeatherApi } from "openmeteo";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 // Input config for selecting the forecast location.
@@ -195,4 +195,11 @@ const summary: DaySummary = {
 };
 
 // Print structured JSON for downstream app/API usage.
-console.log(JSON.stringify(summary, null, 2));
+const outputJson = JSON.stringify(summary, null, 2);
+console.log(outputJson);
+
+// Optional: persist the summary to data/om_summary.json when requested.
+if (process.argv.includes("--write")) {
+  const outputPath = path.resolve(process.cwd(), "data", "om_summary.json");
+  await writeFile(outputPath, `${outputJson}\n`, "utf-8");
+}

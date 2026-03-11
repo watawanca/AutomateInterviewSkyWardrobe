@@ -1,0 +1,24 @@
+{
+  "date": "2026-03-11",
+  "sunrise": "2026-03-11T06:00:00.000Z",
+  "sunset": "2026-03-11T18:00:00.000Z",
+  "daylightTemperatureC": {
+    "min": 0,
+    "max": 0
+  },
+  "daylightHumidityPct": {
+    "average": 0
+  },
+  "dailyRain": {
+    "maxChancePct": 0,
+    "maxStrengthMmPerHour": 0,
+    "totalDepthMm": 0
+  },
+  "daylightWindSpeedKmh": {
+    "min": 0,
+    "max": 0
+  },
+  "daylightWindGustKmh": {
+    "max": 0
+  }
+}

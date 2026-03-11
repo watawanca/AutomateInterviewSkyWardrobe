@@ -1,70 +1,52 @@
 //So this needs to make decisions based on the data from the filtered summary
 //And use the user's preferences to make a recommendation for the day
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
-import type { DaySummary } from "./OMSummary.js";
 import { MatchSummaryToPrefs } from "./PrefMatching.js";
 import type { PreferencesConfig } from "./PrefMatching.js";
+import clothingData from "../data/clothing.json" with { type: "json" };
+import type { DaySummary } from "./OMSummary.js";
+import omSummaryData from "../data/om_summary.json" with { type: "json" };
+import preferencesData from "../config/preferences.config.json" with { type: "json" };
 
+//FOR AI: Import data from clothing.json and make an item type for it.
 type ClothingItem = {
   id: string;
   name: string;
   category: string;
+  layer: string;
+  gender: string[];
   warmth: number;
   windchillPrevention: number;
   waterResistance: number;
   breathability: number;
+  style: string[];
+  complements: string[];
+  weatherTags: string[];
+  formality: string;
+  activity: string[];
 };
 
 type ClothingDatabase = {
   version: string;
-  notes?: string;
+  notes: string;
   items: ClothingItem[];
 };
 
-async function loadClothingDatabase(): Promise<ClothingDatabase> {
-  const clothingPath = path.resolve(process.cwd(), "data", "clothing.json");
-  const raw = await readFile(clothingPath, "utf-8");
-  return JSON.parse(raw) as ClothingDatabase;
+const clothingDatabase = clothingData as ClothingDatabase;
+
+const OMSummary = omSummaryData as DaySummary;
+const preferencesConfig = preferencesData as PreferencesConfig;
+
+const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
+
+function getRecommendedByCategory(category?: string): ClothingItem[] {
+  return clothingDatabase.items.filter((item) => {
+    if (category && item.category !== category) return false;
+    if (summaryMatches.warmthMaxTemp !== undefined && item.warmth < summaryMatches.warmthMaxTemp) return false;
+    if (summaryMatches.warmthMinTemp !== undefined && item.warmth < summaryMatches.warmthMinTemp) return false;
+    if (summaryMatches.windchillPrevention !== undefined && item.windchillPrevention < summaryMatches.windchillPrevention) return false;
+    if (summaryMatches.waterResistance !== undefined && item.waterResistance < summaryMatches.waterResistance) return false;
+    return true;
+  });
 }
 
-async function loadPreferencesConfig(): Promise<PreferencesConfig> {
-  const preferencesPath = path.resolve(process.cwd(), "config", "preferences.config.json");
-  const raw = await readFile(preferencesPath, "utf-8");
-  return JSON.parse(raw) as PreferencesConfig;
-}
-
-async function loadOMSummary(): Promise<DaySummary> {
-  const summaryPath = path.resolve(process.cwd(), "data", "om_summary.json");
-  const raw = await readFile(summaryPath, "utf-8");
-  return JSON.parse(raw) as DaySummary;
-}
-
-export const clothingDatabase = await loadClothingDatabase();
-export const preferencesConfig = await loadPreferencesConfig();
-export const OMSummary = await loadOMSummary();
-export const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
-
-async function recommendClothing(): Promise<ClothingItem[]> {
-  //This is where the logic will go to recommend clothing based on the summary and the database
-  /*
-  1. Temperature
-    - Max and min
-      - Warmth
-      - Breathability
-  2. Rain
-    - Rain resistance
-  3. Wind
-    - Windchill prevention
-  4. Style
-    - Gender
-    - Formality
-    - Complements
-
-  REFER TO README
-  
-    */
-  
-  return [];
-}
+const recommended = getRecommendedByCategory();

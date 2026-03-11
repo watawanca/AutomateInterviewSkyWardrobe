@@ -6,6 +6,7 @@
   "scripts": {
     "weather:run": "tsx Utils/OpenMeteo.ts",
     "weather:summary": "tsx Utils/OpenMeteoFilteredSummary.ts",
+    "weather:update": "tsx Utils/OMSummary.ts --write",
     "weather:watch": "tsx watch Utils/OpenMeteo.ts",
     "build": "tsc -p tsconfig.json",
     "dev:backend": "tsx watch src/backend.ts",

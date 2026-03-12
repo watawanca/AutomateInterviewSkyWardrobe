@@ -8,7 +8,7 @@ import type { DaySummary } from "./OMSummary.js";
 import omSummaryData from "../data/om_summary.json" with { type: "json" };
 import preferencesData from "../config/preferences.config.json" with { type: "json" };
 
-//FOR AI: Import data from clothing.json and make an item type for it.
+// Clothing item schema derived from data/clothing.json.
 export type ClothingItem = {
   id: string;
   name: string;
@@ -37,6 +37,7 @@ const clothingDatabase = clothingData as ClothingDatabase;
 const OMSummary = omSummaryData as DaySummary;
 const preferencesConfig = preferencesData as PreferencesConfig;
 
+// Convert weather summary into preference targets (warmth, wind, rain).
 const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
 console.log("[ClothesListGen] Summary matches:", summaryMatches);
 
@@ -77,6 +78,7 @@ function pickClosestByWarmthExcluding(
   return pickClosestByWarmth(filtered, target);
 }
 
+// Build a warmer outer layer plan for the max temperature target.
 function buildWarmthLayerForMaxWarmth(maxWarmth?: number): WarmthLayerPlan {
   if (maxWarmth === undefined) return {};
 
@@ -112,6 +114,7 @@ function buildWarmthLayerForMaxWarmth(maxWarmth?: number): WarmthLayerPlan {
   };
 }
 
+// Build a lighter inner layer plan for the min temperature target.
 function buildWarmthLayerForMinWarmth(minWarmth?: number): WarmthLayerPlan {
   if (minWarmth === undefined) return {};
 
@@ -135,6 +138,7 @@ function buildWarmthLayerForMinWarmth(minWarmth?: number): WarmthLayerPlan {
   };
 }
 
+// Combine inner/outer plans while avoiding duplicate items.
 function buildLayeredOutfit(
   innerPlan: WarmthLayerPlan,
   outerPlan: WarmthLayerPlan,
@@ -193,6 +197,7 @@ function buildLayeredOutfit(
   };
 }
 
+// Filter items that match the computed weather-driven requirements.
 function getRecommendedByCategory(category?: string): ClothingItem[] {
   return clothingDatabase.items.filter((item) => {
     if (category && item.category !== category) return false;
@@ -219,6 +224,7 @@ function getRecommendedByCategory(category?: string): ClothingItem[] {
   });
 }
 
+// Generate recommendations and assemble a layered outfit.
 const recommended = getRecommendedByCategory();
 const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
 const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);

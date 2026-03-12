@@ -43,10 +43,10 @@ How you define the thresholds for specific weather categories (e.g., "cold" vs. 
         ~~- Have it such that the outermost layer is the one that matches the max warmth band; ~~
         ~~- and the innermost layer is the one that matches the min warmth band.~~
 2. Breathability stacks with layers, in much the same manner.
-3. Windchill prevention does not stack. 
-    - Take the max of all clothes to get the total windchill prevention.
-4. Water resistance does not stack. 
-    - Same as windchill prevention
+3.~~ Windchill prevention does not stack. ~~ DONE
+    ~~- Take the max of all clothes to get the total windchill prevention.~~
+4.~~ Water resistance does not stack. ~~ DONE
+    ~~- Same as windchill prevention~~
 
 # Future additions:
 - Initialiser kinda thing to start off the program and run the right lines

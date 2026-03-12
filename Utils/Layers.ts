@@ -1,3 +1,4 @@
+// Shared layer scale (0-4) so all logic uses the same numeric values.
 export const Layers = {
   Base: 0,
   Main: 1,
@@ -6,4 +7,5 @@ export const Layers = {
   Accessory: 4,
 } as const;
 
+// Union of numeric layer values for typing.
 export type LayerValue = (typeof Layers)[keyof typeof Layers];

@@ -2,6 +2,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+// Config loaded from config/weather.config.json.
 type WeatherConfig = {
 	latitude: number;
 	longitude: number;
@@ -20,6 +21,7 @@ async function loadConfig(): Promise<WeatherConfig> {
 	return parsed;
 }
 
+// Load API configuration and build the request parameters.
 const config = await loadConfig();
 
 const params = {
@@ -38,10 +40,10 @@ const params = {
 const url = "https://api.open-meteo.com/v1/forecast";
 const responses = await fetchWeatherApi(url, params);
 
-// Process first location. Add a for-loop for multiple locations or weather models
+// Process first location. Add a for-loop for multiple locations or weather models.
 const response = responses[0];
 
-// Attributes for timezone and location
+// Attributes for timezone and location.
 const latitude = response.latitude();
 const longitude = response.longitude();
 const elevation = response.elevation();

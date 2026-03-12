@@ -9,6 +9,7 @@ export const {
   layeredOutfit,
 } = clothesListGenOutput;
 
+// Source items from the layered outfit plan.
 const layeredItems = layeredOutfit.items ?? [];
 const layeredById = new Map(layeredItems.map((item) => [item.id, item]));
 
@@ -18,8 +19,10 @@ type ComplementOutfit = {
   items: ClothingItem[];
 };
 
+// Below this warmth target, require socks in the minimal outfit.
 const SOCKS_REQUIRED_WARMTH = 4;
 
+// Enforce the minimum outfit: main-layer top/bottom + outer-layer shoes (+ socks if cold).
 const isCompleteOutfit = (items: ClothingItem[]): boolean => {
   const hasTop = items.some((item) => item.category === "top" && item.layer === Layers.Main);
   const hasBottom = items.some((item) => item.category === "bottom" && item.layer === Layers.Main);
@@ -37,6 +40,7 @@ const isCompleteOutfit = (items: ClothingItem[]): boolean => {
   return hasSocks;
 };
 
+// Prevent duplicates of the same category within the same layer.
 const hasUniqueCategoryPerLayer = (items: ClothingItem[]): boolean => {
   const seen = new Set<string>();
   for (const item of items) {
@@ -47,6 +51,7 @@ const hasUniqueCategoryPerLayer = (items: ClothingItem[]): boolean => {
   return true;
 };
 
+// Check warmth, wind, and rain thresholds against outfit capabilities.
 const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
   if (items.length === 0) return false;
 
@@ -94,6 +99,7 @@ const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
   return true;
 };
 
+// Build candidate outfits based on complement relationships.
 const rawComplementOutfits: ComplementOutfit[] = layeredItems
   .map((item) => {
     const complements = (item.complements ?? [])
@@ -111,6 +117,7 @@ const rawComplementOutfits: ComplementOutfit[] = layeredItems
   .filter((outfit) => hasUniqueCategoryPerLayer(outfit.items))
   .filter((outfit) => meetsWeatherConditions(outfit.items));
 
+// Remove duplicate outfits by normalizing item IDs.
 export const complementOutfits: ComplementOutfit[] = (() => {
   const seen = new Set<string>();
   const deduped: ComplementOutfit[] = [];
@@ -128,6 +135,7 @@ export const complementOutfits: ComplementOutfit[] = (() => {
   return deduped;
 })();
 
+// Format output for console logging.
 const formatOutfit = (outfit: ComplementOutfit): string => {
   const top = outfit.items.find((item) => item.category === "top");
   const bottom = outfit.items.find((item) => item.category === "bottom");
@@ -149,6 +157,7 @@ const formatOutfit = (outfit: ComplementOutfit): string => {
   }`;
 };
 
+// Log output in console
 console.log("[ClothesToOutfit] Complement outfit list:");
 complementOutfits.forEach((outfit, index) => {
   const formatted = formatOutfit(outfit);

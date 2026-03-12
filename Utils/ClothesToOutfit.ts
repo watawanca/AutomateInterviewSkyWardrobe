@@ -22,6 +22,41 @@ type ComplementOutfit = {
 // Below this warmth target, require socks in the minimal outfit.
 const SOCKS_REQUIRED_WARMTH = 4;
 
+const maxWarmthStackPossible = (() => {
+  const byLayer = new Map<number, ClothingItem[]>();
+  for (const item of layeredItems) {
+    const list = byLayer.get(item.layer) ?? [];
+    list.push(item);
+    byLayer.set(item.layer, list);
+  }
+
+  let total = 0;
+  for (const items of byLayer.values()) {
+    const maxWarmth = items.reduce((max, item) => Math.max(max, item.warmth), 0);
+    total += maxWarmth;
+  }
+
+  return total === 0 ? undefined : total;
+})();
+
+const getStackedWarmth = (items: ClothingItem[]): number => {
+  const byLayer = new Map<number, ClothingItem[]>();
+  for (const item of items) {
+    const list = byLayer.get(item.layer) ?? [];
+    list.push(item);
+    byLayer.set(item.layer, list);
+  }
+
+  let total = 0;
+  for (const layerItems of byLayer.values()) {
+    const layerAverage =
+      layerItems.reduce((sum, item) => sum + item.warmth, 0) / layerItems.length;
+    total += layerAverage;
+  }
+
+  return total;
+};
+
 const pickFirstByIds = (
   candidates: ClothingItem[],
   preferredIds: Set<string>,
@@ -140,14 +175,8 @@ const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
     return false;
   }
 
-  const top = items.find((item) => item.category === "top");
-  const bottom = items.find((item) => item.category === "bottom");
-  const outer = items.find((item) => item.category === "outerwear");
-
-  if (top && bottom) {
-    const warmthValues = [top.warmth, bottom.warmth];
-    if (outer) warmthValues.push(outer.warmth);
-    const averageWarmth = warmthValues.reduce((sum, value) => sum + value, 0) / warmthValues.length;
+  if (items.length > 0) {
+    const totalWarmth = getStackedWarmth(items);
 
     const minTarget = summaryMatches.warmthMinTemp;
     const maxTarget = summaryMatches.warmthMaxTemp;
@@ -156,11 +185,13 @@ const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
       const low = Math.min(minTarget, maxTarget);
       const high = Math.max(minTarget, maxTarget);
 
-      if (averageWarmth < low) {
+      const canMeetLow =
+        maxWarmthStackPossible === undefined || maxWarmthStackPossible >= low;
+      if (canMeetLow && totalWarmth < low) {
         return false;
       }
 
-      if (averageWarmth > high) {
+      if (totalWarmth > high) {
         return false;
       }
     }

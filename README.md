@@ -1,7 +1,9 @@
-> [!Important] AI Usage Disclaimer
+> [!important] AI Usage Disclaimer
 > Due to my lack of skill in  programming with TS, I have used AI to do the following:
 > 1. Use the data from the code snippet OpenMeteo.TS to create a summary
 > 2. Set up TS (i.e. dist, node_modules, etc.)
+> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; \{TO BE ADDED\}
+> 4. 
 > 
 > I have also used AI to speed up the execution of the following tasks:
 > 1. Formulate the clothing database
@@ -9,6 +11,19 @@
 > 
 > I have used AI to do tasks that I believed were beyond my current capability, and to do tasks that I could have done but would have taken too long.
 > However, I promise you that I will improve in both programming and TS, so that I can make this sort of thing without needing AI.
+
+> [!note] Commands To Run
+> `npm run build` to start off
+> `npm run weather:update` to update the om_summary.json from current weather data
+> `npx tsx Utils\ClothesListGen` to pull up the full list of clothes
+> ... MORE PENDING
+
+# Layer Scale (0-4)
+0: Thermal underlayers/underwear (includes socks; often empty)
+1: Main garments (t-shirts, tops, pants, etc.)
+2: Mid layer (waistcoats, vests, light jumpers)
+3: Outer layer (shoes, footwear, jackets, coats)
+4: Accessories (hats, masks, etc.)
 
 # Design Brief
 Problem 2: SkyWardrobe (Real-Time Weather Advisor)
@@ -34,6 +49,7 @@ How you define the thresholds for specific weather categories (e.g., "cold" vs. 
     - Same as windchill prevention
 
 # Future additions:
+- Initialiser kinda thing to start off the program and run the right lines
 - UI + GUI
 - Allow user to modify database and preferences through the UI, and save those changes to the files
 - Graphics for the clothing items, and use those in the UI

@@ -1,6 +1,7 @@
 //So this needs to make decisions based on the data from the filtered summary
 //And use the user's preferences to make a recommendation for the day
 import { MatchSummaryToPrefs } from "./PrefMatching.js";
+import { Layers } from "./Layers.js";
 import type { PreferencesConfig } from "./PrefMatching.js";
 import clothingData from "../data/clothing.json" with { type: "json" };
 import type { DaySummary } from "./OMSummary.js";
@@ -8,11 +9,11 @@ import omSummaryData from "../data/om_summary.json" with { type: "json" };
 import preferencesData from "../config/preferences.config.json" with { type: "json" };
 
 //FOR AI: Import data from clothing.json and make an item type for it.
-type ClothingItem = {
+export type ClothingItem = {
   id: string;
   name: string;
   category: string;
-  layer: string;
+  layer: number;
   gender: string[];
   warmth: number;
   windchillPrevention: number;
@@ -204,7 +205,8 @@ function getRecommendedByCategory(category?: string): ClothingItem[] {
       const maxAcceptableWarmth = averageWarmth + 1;
       if (item.warmth < minAcceptableWarmth || item.warmth > maxAcceptableWarmth) return false;
     }
-    const isOverlayer = item.category === "outerwear" || item.layer === "outer";
+    const isOverlayer =
+      item.category === "outerwear" || (item.layer === Layers.Outer && item.category !== "shoes");
     if (
       isOverlayer &&
       summaryMatches.windchillPrevention !== undefined &&
@@ -226,3 +228,11 @@ console.log("[ClothesListGen] Recommended count:", recommended.length);
 console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
 console.log("[ClothesListGen] Outer layer plan:", warmthLayerPlan);
 console.log("[ClothesListGen] Layered outfit:", layeredOutfit);
+
+export const clothesListGenOutput = {
+  summaryMatches,
+  recommended,
+  warmthInnerLayerPlan,
+  warmthLayerPlan,
+  layeredOutfit,
+};

@@ -23,13 +23,19 @@ export type PreferencesConfig = {
   notes?: string[];
   temperatureUnit: string;
   gender: string;
+  fallbackMatches?: {
+    warmthMaxTemp: number;
+    warmthMinTemp: number;
+    windchillPrevention: number;
+    waterResistance: number;
+  };
   warmthToTemperatureRangeC: WarmthBand[];
   windchillPreventionToWindSpeedKmh: WindchillBand[];
   waterResistanceToRainDepthMm: WaterResistanceBand[];
 };
 
 function matchBand<T extends { min: number; max: number }>(value: number, bands: T[]): T | undefined {
-  return bands.find((band) => value >= band.min && value <= band.max) ?? bands.at(-1);
+  return bands.find((band) => value >= band.min && value <= band.max);
 }
 
 export function TempWarmthMatch(tempC: number, prefs: PreferencesConfig): WarmthBand | undefined {
@@ -62,11 +68,17 @@ export function MatchSummaryToPrefs(summary: DaySummary, prefs: PreferencesConfi
   const minTempBand = TempWarmthMatch(summary.daylightTemperatureC.min, prefs);
   const windBand = WindResMatch(summary.daylightWindSpeedKmh.max, prefs);
   const rainBand = RainResMatch(summary.dailyRain.totalDepthMm, prefs);
+  const fallback = prefs.fallbackMatches ?? {
+    warmthMaxTemp: 5,
+    warmthMinTemp: 6,
+    windchillPrevention: 2,
+    waterResistance: 0,
+  };
 
   return {
-    warmthMaxTemp: maxTempBand?.warmth,
-    warmthMinTemp: minTempBand?.warmth,
-    windchillPrevention: windBand?.windchillPrevention,
-    waterResistance: rainBand?.waterResistance,
+    warmthMaxTemp: maxTempBand?.warmth ?? fallback.warmthMaxTemp,
+    warmthMinTemp: minTempBand?.warmth ?? fallback.warmthMinTemp,
+    windchillPrevention: windBand?.windchillPrevention ?? fallback.windchillPrevention,
+    waterResistance: rainBand?.waterResistance ?? fallback.waterResistance,
   };
 }

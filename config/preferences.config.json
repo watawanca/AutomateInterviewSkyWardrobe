@@ -13,56 +13,62 @@
     "neutral": 0,
     "runsWarm": -4
   },
+  "fallbackMatches": {
+    "warmthMaxTemp": 5,
+    "warmthMinTemp": 6,
+    "windchillPrevention": 2,
+    "waterResistance": 0
+  },
   "warmthToTemperatureRangeC": [
     {
       "warmth": 0,
-      "min": 38.01,
-      "max": 45
+      "min": 35.01,
+      "max": 50
     },
     {
       "warmth": 1,
-      "min": 34.01,
-      "max": 38
+      "min": 30.01,
+      "max": 35
     },
     {
       "warmth": 2,
-      "min": 29.01,
-      "max": 34
+      "min": 26.01,
+      "max": 30
     },
     {
       "warmth": 3,
-      "min": 25.01,
-      "max": 29
+      "min": 22.01,
+      "max": 26
     },
     {
       "warmth": 4,
-      "min": 21.01,
-      "max": 25
+      "min": 19.01,
+      "max": 22
     },
     {
       "warmth": 5,
-      "min": 17.01,
-      "max": 21
+      "min": 16.01,
+      "max": 19
     },
     {
       "warmth": 6,
-      "min": 13.01,
-      "max": 17
+      "min": 12.01,
+      "max": 16
     },
     {
       "warmth": 7,
       "min": 8.01,
-      "max": 13
+      "max": 12
     },
     {
       "warmth": 8,
-      "min": 3.01,
+      "min": 4.01,
       "max": 8
     },
     {
       "warmth": 9,
       "min": 0.01,
-      "max": 3
+      "max": 4
     },
     {
       "warmth": 10,
@@ -74,36 +80,36 @@
     {
       "windchillPrevention": 0,
       "min": 0,
-      "max": 10
+      "max": 5
     },
     {
       "windchillPrevention": 1,
+      "min": 5.01,
+      "max": 10
+    },
+    {
+      "windchillPrevention": 2,
       "min": 10.01,
       "max": 15
     },
     {
-      "windchillPrevention": 2,
+      "windchillPrevention": 3,
       "min": 15.01,
       "max": 20
     },
     {
-      "windchillPrevention": 3,
+      "windchillPrevention": 4,
       "min": 20.01,
       "max": 25
     },
     {
-      "windchillPrevention": 4,
+      "windchillPrevention": 5,
       "min": 25.01,
       "max": 30
     },
     {
-      "windchillPrevention": 5,
-      "min": 30.01,
-      "max": 35
-    },
-    {
       "windchillPrevention": 6,
-      "min": 35.01,
+      "min": 30.01,
       "max": 40
     },
     {
@@ -119,11 +125,11 @@
     {
       "windchillPrevention": 9,
       "min": 60.01,
-      "max": 70
+      "max": 75
     },
     {
       "windchillPrevention": 10,
-      "min": 70.01,
+      "min": 75.01,
       "max": 100
     }
   ],

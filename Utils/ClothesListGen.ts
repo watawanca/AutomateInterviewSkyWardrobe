@@ -54,6 +54,8 @@ type LayeredOutfit = {
   inner?: { top?: ClothingItem; bottom?: ClothingItem };
   outer?: { top?: ClothingItem; bottom?: ClothingItem };
   overlayer?: ClothingItem;
+  shoes?: ClothingItem;
+  socks?: ClothingItem;
   items: ClothingItem[];
 };
 
@@ -139,6 +141,32 @@ function buildWarmthLayerForMinWarmth(minWarmth?: number): WarmthLayerPlan {
 }
 
 // Combine inner/outer plans while avoiding duplicate items.
+function pickBestShoes(items: ClothingItem[]): ClothingItem | undefined {
+  const shoes = items.filter((item) => item.category === "shoes");
+  if (shoes.length === 0) return undefined;
+
+  const targetWater = summaryMatches.waterResistance ?? 0;
+  const targetWind = summaryMatches.windchillPrevention ?? 0;
+
+  const candidates = shoes.filter(
+    (item) => item.waterResistance >= targetWater && item.windchillPrevention >= targetWind,
+  );
+
+  const pool = candidates.length > 0 ? candidates : shoes;
+  return pool.sort((a, b) => b.warmth - a.warmth)[0];
+}
+
+function pickSocks(items: ClothingItem[]): ClothingItem | undefined {
+  const warmthMin = summaryMatches.warmthMinTemp ?? 0;
+  const requiresSocks = warmthMin <= 4;
+  if (!requiresSocks) return undefined;
+
+  const socks = items.filter(
+    (item) => item.layer === Layers.Base && item.category === "accessory",
+  );
+  return socks.sort((a, b) => b.warmth - a.warmth)[0];
+}
+
 function buildLayeredOutfit(
   innerPlan: WarmthLayerPlan,
   outerPlan: WarmthLayerPlan,
@@ -146,6 +174,8 @@ function buildLayeredOutfit(
   const tops = clothingDatabase.items.filter((item) => item.category === "top");
   const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
   const outers = clothingDatabase.items.filter((item) => item.category === "outerwear");
+  const shoes = pickBestShoes(clothingDatabase.items);
+  const socks = pickSocks(clothingDatabase.items);
 
   const items: ClothingItem[] = [];
   const addUnique = (item?: ClothingItem) => {
@@ -188,11 +218,15 @@ function buildLayeredOutfit(
   addUnique(outer.top);
   addUnique(outer.bottom);
   addUnique(overlayer);
+  addUnique(shoes);
+  addUnique(socks);
 
   return {
     inner,
     outer,
     overlayer,
+    shoes,
+    socks,
     items,
   };
 }

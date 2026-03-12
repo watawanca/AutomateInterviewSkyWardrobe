@@ -2,8 +2,7 @@
 > Due to my lack of skill in  programming with TS, I have used AI to do the following:
 > 1. Use the data from the code snippet OpenMeteo.TS to create a summary
 > 2. Set up TS (i.e. dist, node_modules, etc.)
-> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; \{TO BE ADDED\}
-> 4. 
+> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; ClothesToOutfits.ts; UPDATE PENDING
 > 
 > I have also used AI to speed up the execution of the following tasks:
 > 1. Formulate the clothing database

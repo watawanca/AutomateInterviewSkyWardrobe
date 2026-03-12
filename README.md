@@ -28,20 +28,30 @@
 
 # Layer Scale (0-4)
 0: Thermal underlayers/underwear (includes socks; often empty)
+
 1: Main garments (t-shirts, tops, pants, etc.)
+
 2: Mid layer (waistcoats, vests, light jumpers)
+
 3: Outer layer (shoes, footwear, jackets, coats)
+
 4: Accessories (hats, masks, etc.)
 
 # Design Brief
-Problem 2: SkyWardrobe (Real-Time Weather Advisor)
+## Problem 2: SkyWardrobe (Real-Time Weather Advisor)
+
 This challenge requires you to build a lifestyle utility service that bridges the gap between live environmental data and daily user needs. You will create an application that fetches real-time weather metrics and processes them through a custom logic engine to provide context-aware clothing recommendations for the user.
-Core Requirements:
+
+## Core Requirements:
 Data Integration: Fetch live weather data (temperature, humidity, precipitation) from a public API like OpenWeatherMap.
+
 Recommendation Engine: Map weather states to a local dataset (JSON or Database) of clothing items to generate a logical "Outfit of the Day."
+
 Resiliency: Implement a fallback strategy for when the third-party API is unreachable or rate-limited.
 Key things to note:
+
 How you define the thresholds for specific weather categories (e.g., "cold" vs. "chilly").
+(I didn't see this) Handling high-traffic scenarios, such as 10,000 users requesting advice at the same time.
 
 # NOTES FOR FUTURE ME:
 1. ~~Warmth stacks with layers.~~ DONE
@@ -57,6 +67,7 @@ How you define the thresholds for specific weather categories (e.g., "cold" vs. 
     ~~- Same as windchill prevention~~
 
 # Future additions:
+## Will come as competency increases
 ~~- Initialiser kinda thing to start off the program and run the right lines~~ DONE
 ~~- CLI UI~~ DONE
 - Fallbacks in case the API fails (currently hardcoded statics)

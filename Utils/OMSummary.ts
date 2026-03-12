@@ -22,6 +22,7 @@ export type DaySummary = {
 
 // Load latitude/longitude from config/weather.config.json.
 async function loadConfig(): Promise<WeatherConfig> {
+  console.log("[OMSummary] Loading weather config...");
   const configPath = path.resolve(process.cwd(), "config", "weather.config.json");
   const raw = await readFile(configPath, "utf-8");
   const parsed = JSON.parse(raw) as WeatherConfig;
@@ -74,6 +75,7 @@ function getDailyInt64Value(dailyData: NonNullable<typeof daily>, index: number,
 
 // Build and run the Open-Meteo request using configured location.
 const config = await loadConfig();
+console.log("[OMSummary] Config loaded:", config);
 
 const params = {
   latitude: config.latitude,
@@ -91,8 +93,10 @@ const params = {
 };
 
 const url = "https://api.open-meteo.com/v1/forecast";
+console.log("[OMSummary] Fetching weather data...");
 const responses = await fetchWeatherApi(url, params);
 const response = responses[0];
+console.log("[OMSummary] Weather API response received.");
 
 // Prepare hourly arrays for weather variables we need to aggregate.
 const utcOffsetSeconds = response.utcOffsetSeconds();
@@ -101,6 +105,7 @@ const hourly = response.hourly();
 if (!hourly) {
   throw new Error("Missing hourly weather data in API response.");
 }
+console.log("[OMSummary] Hourly data loaded.");
 
 const hourlyLength = (Number(hourly.timeEnd()) - Number(hourly.time())) / hourly.interval();
 const hourlyTimes = Array.from({ length: hourlyLength }, (_, i) =>
@@ -123,6 +128,7 @@ const daily = response.daily();
 if (!daily) {
   throw new Error("Missing daily weather data in API response.");
 }
+console.log("[OMSummary] Daily data loaded.");
 
 const dailyLength = (Number(daily.timeEnd()) - Number(daily.time())) / daily.interval();
 const dailyDates = Array.from({ length: dailyLength }, (_, i) =>
@@ -157,6 +163,7 @@ const daylightIndexes = hourlyTimes
 if (dayIndexes.length === 0 || daylightIndexes.length === 0) {
   throw new Error("No hourly rows found for selected day/daylight window.");
 }
+console.log("[OMSummary] Daylight window computed.");
 
 // Slice raw hourly arrays down to the windows needed by each metric.
 const daylightTemperature = daylightIndexes.map((i) => temperature[i]);
@@ -197,9 +204,11 @@ const summary: DaySummary = {
 // Print structured JSON for downstream app/API usage.
 const outputJson = JSON.stringify(summary, null, 2);
 console.log(outputJson);
+console.log("[OMSummary] Summary generated.");
 
 // Optional: persist the summary to data/om_summary.json when requested.
 if (process.argv.includes("--write")) {
   const outputPath = path.resolve(process.cwd(), "data", "om_summary.json");
+  console.log(`[OMSummary] Writing summary to ${outputPath}`);
   await writeFile(outputPath, `${outputJson}\n`, "utf-8");
 }

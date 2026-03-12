@@ -1,0 +1,188 @@
+{
+    "version": "1.0.0",
+    "notes": [
+        "Maps clothing warmth scores to the outdoor temperature ranges where an item is typically comfortable.",
+        "Temperature ranges are in Celsius.",
+        "Overlaps between warmth bands are intentional so multiple clothing types and layering options can be valid.",
+        "Apply the user preference offset to shift the effective temperature before matching against warmth bands.",
+        "Windchill prevention and water resistance mappings follow the same overlapping-band approach."
+    ],
+    "temperatureUnit": "C",
+    "gender": "male",
+    "userPreferenceOffsetsC": {
+        "runsCold": 4,
+        "neutral": 0,
+        "runsWarm": -4
+    },
+    "warmthToTemperatureRangeC": [
+        {
+            "warmth": 0,
+            "min": 30,
+            "max": 45
+        },
+        {
+            "warmth": 1,
+            "min": 27,
+            "max": 38
+        },
+        {
+            "warmth": 2,
+            "min": 24,
+            "max": 34
+        },
+        {
+            "warmth": 3,
+            "min": 20,
+            "max": 29
+        },
+        {
+            "warmth": 4,
+            "min": 17,
+            "max": 25
+        },
+        {
+            "warmth": 5,
+            "min": 13,
+            "max": 21
+        },
+        {
+            "warmth": 6,
+            "min": 9,
+            "max": 17
+        },
+        {
+            "warmth": 7,
+            "min": 5,
+            "max": 13
+        },
+        {
+            "warmth": 8,
+            "min": 0,
+            "max": 8
+        },
+        {
+            "warmth": 9,
+            "min": -5,
+            "max": 3
+        },
+        {
+            "warmth": 10,
+            "min": -20,
+            "max": 0
+        }
+    ],
+    "windchillPreventionToWindSpeedKmh": [
+        {
+            "windchillPrevention": 0,
+            "min": 0,
+            "max": 10
+        },
+        {
+            "windchillPrevention": 1,
+            "min": 5,
+            "max": 15
+        },
+        {
+            "windchillPrevention": 2,
+            "min": 10,
+            "max": 20
+        },
+        {
+            "windchillPrevention": 3,
+            "min": 15,
+            "max": 25
+        },
+        {
+            "windchillPrevention": 4,
+            "min": 20,
+            "max": 30
+        },
+        {
+            "windchillPrevention": 5,
+            "min": 25,
+            "max": 35
+        },
+        {
+            "windchillPrevention": 6,
+            "min": 30,
+            "max": 40
+        },
+        {
+            "windchillPrevention": 7,
+            "min": 35,
+            "max": 50
+        },
+        {
+            "windchillPrevention": 8,
+            "min": 45,
+            "max": 60
+        },
+        {
+            "windchillPrevention": 9,
+            "min": 55,
+            "max": 70
+        },
+        {
+            "windchillPrevention": 10,
+            "min": 65,
+            "max": 100
+        }
+    ],
+    "waterResistanceToRainDepthMm": [
+        {
+            "waterResistance": 0,
+            "min": 0,
+            "max": 0.2
+        },
+        {
+            "waterResistance": 1,
+            "min": 0,
+            "max": 1
+        },
+        {
+            "waterResistance": 2,
+            "min": 0.2,
+            "max": 2
+        },
+        {
+            "waterResistance": 3,
+            "min": 1,
+            "max": 4
+        },
+        {
+            "waterResistance": 4,
+            "min": 2,
+            "max": 6
+        },
+        {
+            "waterResistance": 5,
+            "min": 4,
+            "max": 10
+        },
+        {
+            "waterResistance": 6,
+            "min": 8,
+            "max": 15
+        },
+        {
+            "waterResistance": 7,
+            "min": 12,
+            "max": 20
+        },
+        {
+            "waterResistance": 8,
+            "min": 18,
+            "max": 30
+        },
+        {
+            "waterResistance": 9,
+            "min": 25,
+            "max": 40
+        },
+        {
+            "waterResistance": 10,
+            "min": 35,
+            "max": 60
+        }
+    ]
+}

@@ -21,12 +21,12 @@ Key things to note:
 How you define the thresholds for specific weather categories (e.g., "cold" vs. "chilly").
 
 # NOTES FOR FUTURE ME:
-1. Warmth stacks with layers. 
-    - Take the average of the upper and lower clothes to get the warmth of one layer.
-    - Then add all layers together to get the total warmth.
-    - So if the max and min temp are in different bands:
-        - Have it such that the outermost layer is the one that matches the max warmth band; 
-        - and the innermost layer is the one that matches the min warmth band.
+1. ~~Warmth stacks with layers.~~ DONE
+    ~~- Take the average of the upper and lower clothes to get the warmth of one layer.~~
+    ~~- Then add all layers together to get the total warmth.~~
+    ~~- So if the max and min temp are in different bands:~~
+        ~~- Have it such that the outermost layer is the one that matches the max warmth band; ~~
+        ~~- and the innermost layer is the one that matches the min warmth band.~~
 2. Breathability stacks with layers, in much the same manner.
 3. Windchill prevention does not stack. 
     - Take the max of all clothes to get the total windchill prevention.

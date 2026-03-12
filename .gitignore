@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-exe/
+.skywardrobe/
+.DS_Store
+tools/pkg/assets/
+tools/pkg/assets-manifest.mjs

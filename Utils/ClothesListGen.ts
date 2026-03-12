@@ -1,19 +1,15 @@
 // Core outfit recommendation engine driven by weather summary + user prefs.
+import { readFileSync } from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 // Map weather summary to preference targets.
 import { MatchSummaryToPrefs } from "./PrefMatching.js";
 // Numeric layer constants used by clothing data.
 import { Layers } from "./Layers.js";
 // Preference types used by the matcher.
 import type { PreferencesConfig, SummaryPrefMatches } from "./PrefMatching.js";
-// Local clothing database.
-import clothingData from "../data/clothing.json" with { type: "json" };
 // Daily summary type and data snapshot.
 import type { DaySummary } from "./OMSummary.js";
-import omSummaryData from "../data/om_summary.json" with { type: "json" };
-// User preferences and thresholds.
-import preferencesData from "../config/preferences.config.json" with { type: "json" };
+import { getConfigPath, getDataPath } from "./paths.js";
 
 // Clothing item schema derived from data/clothing.json.
 export type ClothingItem = {
@@ -69,12 +65,41 @@ export type ClothesListGenOutput = {
   layeredOutfit: LayeredOutfit;
 };
 
-// Parsed clothing DB.
-const clothingDatabase = clothingData as ClothingDatabase;
+const readJson = <T>(filePath: string): T => {
+  const raw = readFileSync(filePath, "utf-8");
+  return JSON.parse(raw) as T;
+};
 
-// Snapshot of weather summary and preferences.
-const OMSummary = omSummaryData as DaySummary;
-const preferencesConfig = preferencesData as PreferencesConfig;
+let cachedDatabase: ClothingDatabase | null = null;
+let cachedSummary: DaySummary | null = null;
+let cachedPreferences: PreferencesConfig | null = null;
+
+const ensureDataLoaded = () => {
+  if (!cachedDatabase) {
+    cachedDatabase = readJson<ClothingDatabase>(getDataPath("clothing.json"));
+  }
+  if (!cachedSummary) {
+    cachedSummary = readJson<DaySummary>(getDataPath("om_summary.json"));
+  }
+  if (!cachedPreferences) {
+    cachedPreferences = readJson<PreferencesConfig>(getConfigPath("preferences.config.json"));
+  }
+};
+
+const getDatabase = () => {
+  ensureDataLoaded();
+  return cachedDatabase as ClothingDatabase;
+};
+
+const getSummary = () => {
+  ensureDataLoaded();
+  return cachedSummary as DaySummary;
+};
+
+const getPreferences = () => {
+  ensureDataLoaded();
+  return cachedPreferences as PreferencesConfig;
+};
 
 // Options for controlling runtime behavior.
 type GenerateOptions = {
@@ -172,19 +197,22 @@ const resolveItemForSlot = (
 };
 
 // Build a warmer outer layer plan for the max temperature target.
-function buildWarmthLayerForMaxWarmth(maxWarmth?: number): WarmthLayerPlan {
+function buildWarmthLayerForMaxWarmth(
+  database: ClothingDatabase,
+  maxWarmth?: number,
+): WarmthLayerPlan {
   if (maxWarmth === undefined) return {};
 
   const tops = filterByLayerPreference(
-    clothingDatabase.items.filter((item) => item.category === "top"),
+    database.items.filter((item) => item.category === "top"),
     [Layers.Mid],
   );
   const bottoms = filterByLayerPreference(
-    clothingDatabase.items.filter((item) => item.category === "bottom"),
+    database.items.filter((item) => item.category === "bottom"),
     [Layers.Mid],
   );
   const outers = filterByLayerPreference(
-    clothingDatabase.items.filter((item) => item.category === "outerwear"),
+    database.items.filter((item) => item.category === "outerwear"),
     [Layers.Outer],
   );
 
@@ -224,15 +252,18 @@ function buildWarmthLayerForMaxWarmth(maxWarmth?: number): WarmthLayerPlan {
 }
 
 // Build a lighter inner layer plan for the min temperature target.
-function buildWarmthLayerForMinWarmth(minWarmth?: number): WarmthLayerPlan {
+function buildWarmthLayerForMinWarmth(
+  database: ClothingDatabase,
+  minWarmth?: number,
+): WarmthLayerPlan {
   if (minWarmth === undefined) return {};
 
   const tops = filterByLayerPreference(
-    clothingDatabase.items.filter((item) => item.category === "top"),
+    database.items.filter((item) => item.category === "top"),
     [Layers.Main],
   );
   const bottoms = filterByLayerPreference(
-    clothingDatabase.items.filter((item) => item.category === "bottom"),
+    database.items.filter((item) => item.category === "bottom"),
     [Layers.Main],
   );
 
@@ -284,18 +315,19 @@ function pickSocks(items: ClothingItem[], summaryMatches: SummaryPrefMatches): C
 
 // Merge inner/outer selections and prevent duplicates.
 function buildLayeredOutfit(
+  database: ClothingDatabase,
   innerPlan: WarmthLayerPlan,
   outerPlan: WarmthLayerPlan,
   summaryMatches: SummaryPrefMatches,
 ): LayeredOutfit {
-  const tops = clothingDatabase.items.filter((item) => item.category === "top");
-  const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
-  const outers = clothingDatabase.items.filter((item) => item.category === "outerwear");
+  const tops = database.items.filter((item) => item.category === "top");
+  const bottoms = database.items.filter((item) => item.category === "bottom");
+  const outers = database.items.filter((item) => item.category === "outerwear");
   const outerTopCandidates = filterByLayerPreference(tops, [Layers.Mid]);
   const outerBottomCandidates = filterByLayerPreference(bottoms, [Layers.Mid]);
   const outerwearCandidates = filterByLayerPreference(outers, [Layers.Outer]);
-  const shoes = pickBestShoes(clothingDatabase.items, summaryMatches);
-  const socks = pickSocks(clothingDatabase.items, summaryMatches);
+  const shoes = pickBestShoes(database.items, summaryMatches);
+  const socks = pickSocks(database.items, summaryMatches);
 
   const items: ClothingItem[] = [];
   const addUnique = (item?: ClothingItem) => {
@@ -362,10 +394,11 @@ function buildLayeredOutfit(
 
 // Filter items that match the computed weather-driven requirements.
 function getRecommendedByCategory(
+  database: ClothingDatabase,
   summaryMatches: SummaryPrefMatches,
   category?: string,
 ): ClothingItem[] {
-  return clothingDatabase.items.filter((item) => {
+  return database.items.filter((item) => {
     if (category && item.category !== category) return false;
     const warmthTargets = [summaryMatches.warmthMinTemp, summaryMatches.warmthMaxTemp].filter(
       (value): value is number => value !== undefined,
@@ -394,6 +427,10 @@ function getRecommendedByCategory(
 export function generateClothesList(options: GenerateOptions = {}): ClothesListGenOutput {
   const { verbose = false } = options;
 
+  const database = getDatabase();
+  const OMSummary = getSummary();
+  const preferencesConfig = getPreferences();
+
   // Convert weather summary into preference targets (warmth, wind, rain).
   const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
   if (verbose) {
@@ -401,14 +438,14 @@ export function generateClothesList(options: GenerateOptions = {}): ClothesListG
   }
 
   // Generate the list of viable clothing items.
-  const viableItems = getRecommendedByCategory(summaryMatches);
+  const viableItems = getRecommendedByCategory(database, summaryMatches);
   if (verbose) {
     console.log("[ClothesListGen] Viable item count:", viableItems.length);
   }
 
-  const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
-  const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);
-  const layeredOutfit = buildLayeredOutfit(warmthInnerLayerPlan, warmthLayerPlan, summaryMatches);
+  const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(database, summaryMatches.warmthMinTemp);
+  const warmthLayerPlan = buildWarmthLayerForMaxWarmth(database, summaryMatches.warmthMaxTemp);
+  const layeredOutfit = buildLayeredOutfit(database, warmthInnerLayerPlan, warmthLayerPlan, summaryMatches);
 
   if (verbose) {
     console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
@@ -430,8 +467,12 @@ export function generateClothesList(options: GenerateOptions = {}): ClothesListG
 }
 
 // Run in standalone mode when invoked directly via tsx.
-const isMain =
-  process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+const isMain = (() => {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  const base = path.basename(entry);
+  return base === "ClothesListGen.ts" || base === "ClothesListGen.js";
+})();
 
 if (isMain) {
   generateClothesList({ verbose: true });

@@ -2,7 +2,7 @@
 > Due to my lack of skill in  programming with TS, I have used AI to do the following:
 > 1. Use the data from the code snippet OpenMeteo.TS to create a summary
 > 2. Set up TS (i.e. dist, node_modules, etc.)
-> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; ClothesToOutfits.ts; UiCli.TS; Startup.cmd; tsconfig.json
+> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; ClothesToOutfits.ts; UiCli.TS; tsconfig.json
 > 
 > I have also used AI to speed up the execution of the following tasks:
 > 1. Formulate the clothing database
@@ -16,6 +16,14 @@
 > `npm run weather:update` to update the om_summary.json from current weather data
 > `npx tsx Utils\ClothesListGen` to pull up the full list of clothes
 > `npm run ui` to launch the polished CLI layout
+
+> [!note] Single EXE (Node Bundled)
+> This builds a standalone EXE that embeds Node and runs the startup sequence internally.
+> It seeds `config` and `data` into `%APPDATA%\\SkyWardrobe` on first run, then reads/writes from there.
+> Install dev deps and build:
+> `npm install`
+> `npm run build:exe`
+> Then run `dist-exe\SkyWardrobe.exe`.
 
 # Layer Scale (0-4)
 0: Thermal underlayers/underwear (includes socks; often empty)

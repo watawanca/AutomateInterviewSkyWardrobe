@@ -68,6 +68,28 @@ const completeOutfit = (
   return result;
 };
 
+const normalizeUniquePerLayerCategory = (
+  items: ClothingItem[],
+  preferredIds: Set<string>,
+): ClothingItem[] => {
+  const byKey = new Map<string, ClothingItem[]>();
+
+  for (const item of items) {
+    const key = `${item.layer}:${item.category}`;
+    const list = byKey.get(key) ?? [];
+    list.push(item);
+    byKey.set(key, list);
+  }
+
+  const normalized: ClothingItem[] = [];
+  for (const [_, candidates] of byKey) {
+    const pick = pickFirstByIds(candidates, preferredIds);
+    if (pick) normalized.push(pick);
+  }
+
+  return normalized;
+};
+
 // Enforce the minimum outfit: main-layer top/bottom + outer-layer shoes (+ socks if cold).
 const isCompleteOutfit = (items: ClothingItem[]): boolean => {
   const hasTop = items.some((item) => item.category === "top" && item.layer === Layers.Main);
@@ -156,10 +178,12 @@ const rawComplementOutfits: ComplementOutfit[] = layeredItems
     const completedItems = completeOutfit([item, ...complements], preferredIds);
     if (!completedItems) return null;
 
+    const normalizedItems = normalizeUniquePerLayerCategory(completedItems, preferredIds);
+
     return {
       base: item,
       complements,
-      items: completedItems,
+      items: normalizedItems,
     };
   })
   .filter((outfit): outfit is ComplementOutfit => Boolean(outfit))

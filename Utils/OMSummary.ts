@@ -1,4 +1,5 @@
 // Builds a single-day summary from Open-Meteo hourly + daily data.
+// Exports a function for programmatic use and a CLI entry for tsx.
 import { fetchWeatherApi } from "openmeteo";
 // Read config and persist output JSON.
 import { readFile, writeFile } from "node:fs/promises";
@@ -81,6 +82,7 @@ function getDailyInt64Value(dailyData: DailyData, index: number, dayIndex: numbe
   return value;
 }
 
+// Primary entry used by the launcher and scripts.
 export async function runOMSummary(options: { write?: boolean } = {}): Promise<DaySummary> {
   const { write = false } = options;
 
@@ -228,11 +230,13 @@ export async function runOMSummary(options: { write?: boolean } = {}): Promise<D
   return summary;
 }
 
+// CLI wrapper for "tsx Utils/OMSummary.ts".
 async function runFromCli() {
   const shouldWrite = process.argv.includes("--write");
   await runOMSummary({ write: shouldWrite });
 }
 
+// Detect direct invocation without relying on import.meta (CJS safe).
 const isDirectRun = (() => {
   const entry = process.argv[1];
   if (!entry) return false;

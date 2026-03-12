@@ -2,7 +2,8 @@
 > Due to my lack of skill in  programming with TS, I have used AI to do the following:
 > 1. Use the data from the code snippet OpenMeteo.TS to create a summary
 > 2. Set up TS (i.e. dist, node_modules, etc.)
-> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; ClothesToOutfits.ts; UiCli.TS; tsconfig.json
+> 3. Set up the compiler (tsup & pkg) & add custom code for tools/pkg/launcher.ts to have the app as a fully standalone piece (Seeding of Appdata, embedding manifest.json, redirecting reads&writes to appdata, removing CJS-incompatible stuff)
+> 4. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; ClothesToOutfits.ts; UiCli.TS; tsconfig.json
 > 
 > I have also used AI to speed up the execution of the following tasks:
 > 1. Formulate the clothing database

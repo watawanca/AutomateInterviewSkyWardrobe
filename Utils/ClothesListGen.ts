@@ -1,4 +1,5 @@
 // Core outfit recommendation engine driven by weather summary + user prefs.
+// Loads data lazily so the launcher can seed config/data before first use.
 import { readFileSync } from "node:fs";
 import path from "node:path";
 // Map weather summary to preference targets.
@@ -65,15 +66,18 @@ export type ClothesListGenOutput = {
   layeredOutfit: LayeredOutfit;
 };
 
+// Small JSON loader for runtime data files.
 const readJson = <T>(filePath: string): T => {
   const raw = readFileSync(filePath, "utf-8");
   return JSON.parse(raw) as T;
 };
 
+// Cache loaded files to avoid repeated disk I/O.
 let cachedDatabase: ClothingDatabase | null = null;
 let cachedSummary: DaySummary | null = null;
 let cachedPreferences: PreferencesConfig | null = null;
 
+// Ensure config/data snapshots are loaded before generating output.
 const ensureDataLoaded = () => {
   if (!cachedDatabase) {
     cachedDatabase = readJson<ClothingDatabase>(getDataPath("clothing.json"));
@@ -86,6 +90,7 @@ const ensureDataLoaded = () => {
   }
 };
 
+// Accessors keep call sites clean.
 const getDatabase = () => {
   ensureDataLoaded();
   return cachedDatabase as ClothingDatabase;

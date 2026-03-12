@@ -1,4 +1,5 @@
 // Polished CLI layout renderer for the SkyWardrobe outfit output.
+// Reads the latest summary from the app data folder at runtime.
 import type { DaySummary } from "./OMSummary.js";
 import type { ClothingItem } from "./ClothesListGen.js";
 import { generateClothesList } from "./ClothesListGen.js";
@@ -6,6 +7,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { getDataPath } from "./paths.js";
 
+// Load the latest weather summary snapshot.
 const loadSummary = (): DaySummary => {
   const summaryPath = getDataPath("om_summary.json");
   const raw = readFileSync(summaryPath, "utf-8");

@@ -2,14 +2,14 @@
 > Due to my lack of skill in  programming with TS, I have used AI to do the following:
 > 1. Use the data from the code snippet OpenMeteo.TS to create a summary
 > 2. Set up TS (i.e. dist, node_modules, etc.)
-> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; ClothesToOutfits.ts; UPDATE PENDING
+> 3. Code the logic I specified in TS for ClothesListGen; PrefMatching.TS; ClothesToOutfits.ts; UiCli.TS; Startup.cmd; tsconfig.json
 > 
 > I have also used AI to speed up the execution of the following tasks:
 > 1. Formulate the clothing database
 > 2. Setup both config files
 > 
 > I have used AI to do tasks that I believed were beyond my current capability, and to do tasks that I could have done but would have taken too long.
-> However, I promise you that I will improve in both programming and TS, so that I can make this sort of thing without needing AI.
+> However, I promise you that I will improve in both programming and TS, so that I can make this sort of thing without needing AI. I enjoyed trying to learn about TS, despite my heavy use of AI.
 
 > [!note] Commands To Run
 > `npm run build` to start off
@@ -48,8 +48,9 @@ How you define the thresholds for specific weather categories (e.g., "cold" vs. 
     ~~- Same as windchill prevention~~
 
 # Future additions:
-- Initialiser kinda thing to start off the program and run the right lines
-- UI + GUI
+~~- Initialiser kinda thing to start off the program and run the right lines~~ DONE
+~~- CLI UI~~ DONE
+- GUI
 - Allow user to modify database and preferences through the UI, and save those changes to the files
 - Graphics for the clothing items, and use those in the UI
 - Use the complements property to match clothes

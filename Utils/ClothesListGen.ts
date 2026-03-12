@@ -1,13 +1,18 @@
-//So this needs to make decisions based on the data from the filtered summary
-//And use the user's preferences to make a recommendation for the day
+// Core outfit recommendation engine driven by weather summary + user prefs.
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+// Map weather summary to preference targets.
 import { MatchSummaryToPrefs } from "./PrefMatching.js";
+// Numeric layer constants used by clothing data.
 import { Layers } from "./Layers.js";
+// Preference types used by the matcher.
 import type { PreferencesConfig, SummaryPrefMatches } from "./PrefMatching.js";
+// Local clothing database.
 import clothingData from "../data/clothing.json" with { type: "json" };
+// Daily summary type and data snapshot.
 import type { DaySummary } from "./OMSummary.js";
 import omSummaryData from "../data/om_summary.json" with { type: "json" };
+// User preferences and thresholds.
 import preferencesData from "../config/preferences.config.json" with { type: "json" };
 
 // Clothing item schema derived from data/clothing.json.
@@ -28,12 +33,14 @@ export type ClothingItem = {
   activity: string[];
 };
 
+// Root container for the clothing data JSON.
 type ClothingDatabase = {
   version: string;
   notes: string;
   items: ClothingItem[];
 };
 
+// Plan for a layer based on target warmth.
 export type WarmthLayerPlan = {
   minWarmth?: number;
   maxWarmth?: number;
@@ -43,6 +50,7 @@ export type WarmthLayerPlan = {
   layerAverage?: number;
 };
 
+// Output shape for the final outfit selection.
 export type LayeredOutfit = {
   inner?: { top?: ClothingItem; bottom?: ClothingItem };
   outer?: { top?: ClothingItem; bottom?: ClothingItem };
@@ -52,6 +60,7 @@ export type LayeredOutfit = {
   items: ClothingItem[];
 };
 
+// Top-level output used by the UI and CLI.
 export type ClothesListGenOutput = {
   summaryMatches: SummaryPrefMatches;
   viableItems: ClothingItem[];
@@ -60,15 +69,19 @@ export type ClothesListGenOutput = {
   layeredOutfit: LayeredOutfit;
 };
 
+// Parsed clothing DB.
 const clothingDatabase = clothingData as ClothingDatabase;
 
+// Snapshot of weather summary and preferences.
 const OMSummary = omSummaryData as DaySummary;
 const preferencesConfig = preferencesData as PreferencesConfig;
 
+// Options for controlling runtime behavior.
 type GenerateOptions = {
   verbose?: boolean;
 };
 
+// Pick the item with warmth closest to the target.
 function pickClosestByWarmth(items: ClothingItem[], target: number): ClothingItem | undefined {
   if (items.length === 0) return undefined;
   return items.reduce((best, current) => {
@@ -81,6 +94,7 @@ function pickClosestByWarmth(items: ClothingItem[], target: number): ClothingIte
   });
 }
 
+// Pick the best warmth match while excluding already-selected items.
 function pickClosestByWarmthExcluding(
   items: ClothingItem[],
   target: number,
@@ -90,6 +104,7 @@ function pickClosestByWarmthExcluding(
   return pickClosestByWarmth(filtered, target);
 }
 
+// Prefer items from specified layers if they exist.
 const filterByLayerPreference = (
   items: ClothingItem[],
   preferredLayers: number[],
@@ -98,6 +113,7 @@ const filterByLayerPreference = (
   return preferred.length > 0 ? preferred : items;
 };
 
+// Prefer items that have complement relationships within the current selection.
 const preferComplementMatches = (items: ClothingItem[]): ClothingItem[] => {
   const byKey = new Map<string, ClothingItem[]>();
   for (const item of items) {
@@ -142,6 +158,7 @@ const preferComplementMatches = (items: ClothingItem[]): ClothingItem[] => {
   return preferred;
 };
 
+// Resolve an item from the normalized list to keep output consistent.
 const resolveItemForSlot = (
   normalizedItems: ClothingItem[],
   original?: ClothingItem,
@@ -236,7 +253,7 @@ function buildWarmthLayerForMinWarmth(minWarmth?: number): WarmthLayerPlan {
   };
 }
 
-// Combine inner/outer plans while avoiding duplicate items.
+// Choose shoes based on wind/water requirements.
 function pickBestShoes(items: ClothingItem[], summaryMatches: SummaryPrefMatches): ClothingItem | undefined {
   const shoes = items.filter((item) => item.category === "shoes");
   if (shoes.length === 0) return undefined;
@@ -252,6 +269,7 @@ function pickBestShoes(items: ClothingItem[], summaryMatches: SummaryPrefMatches
   return pool.sort((a, b) => b.warmth - a.warmth)[0];
 }
 
+// Always add socks once it is too cold for thongs.
 function pickSocks(items: ClothingItem[], summaryMatches: SummaryPrefMatches): ClothingItem | undefined {
   const warmthMin = summaryMatches.warmthMinTemp ?? 0;
   // "Too cold for thongs" starts at warmth band 4 (<= ~22C), so always add socks from there down.
@@ -264,6 +282,7 @@ function pickSocks(items: ClothingItem[], summaryMatches: SummaryPrefMatches): C
   return socks.sort((a, b) => b.warmth - a.warmth)[0];
 }
 
+// Merge inner/outer selections and prevent duplicates.
 function buildLayeredOutfit(
   innerPlan: WarmthLayerPlan,
   outerPlan: WarmthLayerPlan,
@@ -371,6 +390,7 @@ function getRecommendedByCategory(
   });
 }
 
+// Main entry point for generating outfit suggestions.
 export function generateClothesList(options: GenerateOptions = {}): ClothesListGenOutput {
   const { verbose = false } = options;
 
@@ -409,6 +429,7 @@ export function generateClothesList(options: GenerateOptions = {}): ClothesListG
   };
 }
 
+// Run in standalone mode when invoked directly via tsx.
 const isMain =
   process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 

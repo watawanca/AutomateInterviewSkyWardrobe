@@ -1,5 +1,8 @@
+// Builds a single-day summary from Open-Meteo hourly + daily data.
 import { fetchWeatherApi } from "openmeteo";
+// Read config and persist output JSON.
 import { readFile, writeFile } from "node:fs/promises";
+// Resolve config/data paths from project root.
 import path from "node:path";
 
 // Input config for selecting the forecast location.
@@ -77,6 +80,7 @@ function getDailyInt64Value(dailyData: NonNullable<typeof daily>, index: number,
 const config = await loadConfig();
 console.log("[OMSummary] Config loaded:", config);
 
+// Request hourly variables and daily sunrise/sunset for today.
 const params = {
   latitude: config.latitude,
   longitude: config.longitude,

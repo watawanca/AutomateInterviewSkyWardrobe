@@ -3,15 +3,12 @@ import { Layers } from "./Layers.js";
 
 export const {
   summaryMatches,
-  recommended,
-  warmthInnerLayerPlan,
-  warmthLayerPlan,
-  layeredOutfit,
+  viableItems,
 } = clothesListGenOutput;
 
-// Source items from the layered outfit plan.
-const layeredItems = layeredOutfit.items ?? [];
-const layeredById = new Map(layeredItems.map((item) => [item.id, item]));
+// Source items from the viable clothing list.
+const layeredItems: ClothingItem[] = viableItems ?? [];
+const layeredById = new Map<string, ClothingItem>(layeredItems.map((item) => [item.id, item]));
 
 type ComplementOutfit = {
   base: ClothingItem;
@@ -22,39 +19,13 @@ type ComplementOutfit = {
 // Below this warmth target, require socks in the minimal outfit.
 const SOCKS_REQUIRED_WARMTH = 4;
 
-const maxWarmthStackPossible = (() => {
-  const byLayer = new Map<number, ClothingItem[]>();
-  for (const item of layeredItems) {
-    const list = byLayer.get(item.layer) ?? [];
-    list.push(item);
-    byLayer.set(item.layer, list);
-  }
+const maxWarmthAveragePossible =
+  layeredItems.length === 0
+    ? undefined
+    : layeredItems.reduce((max: number, item: ClothingItem) => Math.max(max, item.warmth), 0);
 
-  let total = 0;
-  for (const items of byLayer.values()) {
-    const maxWarmth = items.reduce((max, item) => Math.max(max, item.warmth), 0);
-    total += maxWarmth;
-  }
-
-  return total === 0 ? undefined : total;
-})();
-
-const getStackedWarmth = (items: ClothingItem[]): number => {
-  const byLayer = new Map<number, ClothingItem[]>();
-  for (const item of items) {
-    const list = byLayer.get(item.layer) ?? [];
-    list.push(item);
-    byLayer.set(item.layer, list);
-  }
-
-  let total = 0;
-  for (const layerItems of byLayer.values()) {
-    const layerAverage =
-      layerItems.reduce((sum, item) => sum + item.warmth, 0) / layerItems.length;
-    total += layerAverage;
-  }
-
-  return total;
+const getAverageWarmth = (items: ClothingItem[]): number => {
+  return items.reduce((sum: number, item: ClothingItem) => sum + item.warmth, 0) / items.length;
 };
 
 const pickFirstByIds = (
@@ -176,7 +147,7 @@ const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
   }
 
   if (items.length > 0) {
-    const totalWarmth = getStackedWarmth(items);
+    const averageWarmth = getAverageWarmth(items);
 
     const minTarget = summaryMatches.warmthMinTemp;
     const maxTarget = summaryMatches.warmthMaxTemp;
@@ -186,12 +157,12 @@ const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
       const high = Math.max(minTarget, maxTarget);
 
       const canMeetLow =
-        maxWarmthStackPossible === undefined || maxWarmthStackPossible >= low;
-      if (canMeetLow && totalWarmth < low) {
+        maxWarmthAveragePossible === undefined || maxWarmthAveragePossible >= low;
+      if (canMeetLow && averageWarmth < low) {
         return false;
       }
 
-      if (totalWarmth > high) {
+      if (averageWarmth > high) {
         return false;
       }
     }
@@ -202,12 +173,12 @@ const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
 
 // Build candidate outfits based on complement relationships.
 const rawComplementOutfits: ComplementOutfit[] = layeredItems
-  .map((item) => {
+  .map((item: ClothingItem) => {
     const complements = (item.complements ?? [])
-      .map((id) => layeredById.get(id))
-      .filter((match): match is ClothingItem => Boolean(match));
+      .map((id: string) => layeredById.get(id))
+      .filter((match: ClothingItem | undefined): match is ClothingItem => Boolean(match));
 
-    const preferredIds = new Set<string>([item.id, ...complements.map((c) => c.id)]);
+    const preferredIds = new Set<string>([item.id, ...complements.map((c: ClothingItem) => c.id)]);
     const completedItems = completeOutfit([item, ...complements], preferredIds);
     if (!completedItems) return null;
 

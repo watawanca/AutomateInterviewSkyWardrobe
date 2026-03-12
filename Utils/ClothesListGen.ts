@@ -291,21 +291,12 @@ function getRecommendedByCategory(category?: string): ClothingItem[] {
   });
 }
 
-// Generate recommendations and assemble a layered outfit.
-const recommended = getRecommendedByCategory();
-const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
-const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);
-const layeredOutfit = buildLayeredOutfit(warmthInnerLayerPlan, warmthLayerPlan);
+// Generate the list of viable clothing items.
+const viableItems = getRecommendedByCategory();
 
-console.log("[ClothesListGen] Recommended count:", recommended.length);
-console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
-console.log("[ClothesListGen] Outer layer plan:", warmthLayerPlan);
-console.log("[ClothesListGen] Layered outfit:", layeredOutfit);
+console.log("[ClothesListGen] Viable item count:", viableItems.length);
 
 export const clothesListGenOutput = {
   summaryMatches,
-  recommended,
-  warmthInnerLayerPlan,
-  warmthLayerPlan,
-  layeredOutfit,
+  viableItems,
 };

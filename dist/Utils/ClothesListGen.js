@@ -1,14 +1,15 @@
 //So this needs to make decisions based on the data from the filtered summary
 //And use the user's preferences to make a recommendation for the day
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { MatchSummaryToPrefs } from "./PrefMatching.js";
+import { Layers } from "./Layers.js";
 import clothingData from "../data/clothing.json" with { type: "json" };
 import omSummaryData from "../data/om_summary.json" with { type: "json" };
 import preferencesData from "../config/preferences.config.json" with { type: "json" };
 const clothingDatabase = clothingData;
 const OMSummary = omSummaryData;
 const preferencesConfig = preferencesData;
-const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
-console.log("[ClothesListGen] Summary matches:", summaryMatches);
 function pickClosestByWarmth(items, target) {
     if (items.length === 0)
         return undefined;
@@ -28,23 +29,83 @@ function pickClosestByWarmthExcluding(items, target, excludeIds) {
     const filtered = items.filter((item) => !excludeIds.has(item.id));
     return pickClosestByWarmth(filtered, target);
 }
+const filterByLayerPreference = (items, preferredLayers) => {
+    const preferred = items.filter((item) => preferredLayers.includes(item.layer));
+    return preferred.length > 0 ? preferred : items;
+};
+const preferComplementMatches = (items) => {
+    const byKey = new Map();
+    for (const item of items) {
+        const key = `${item.layer}:${item.category}`;
+        const list = byKey.get(key) ?? [];
+        list.push(item);
+        byKey.set(key, list);
+    }
+    const allIds = new Set(items.map((item) => item.id));
+    const complementScore = (item) => {
+        let score = 0;
+        for (const id of item.complements ?? []) {
+            if (allIds.has(id))
+                score += 1;
+        }
+        for (const other of items) {
+            if (other.id === item.id)
+                continue;
+            if ((other.complements ?? []).includes(item.id))
+                score += 1;
+        }
+        return score;
+    };
+    const preferred = [];
+    for (const candidates of byKey.values()) {
+        if (candidates.length === 1) {
+            preferred.push(candidates[0]);
+            continue;
+        }
+        let best = candidates[0];
+        let bestScore = complementScore(best);
+        for (const candidate of candidates.slice(1)) {
+            const score = complementScore(candidate);
+            if (score > bestScore) {
+                best = candidate;
+                bestScore = score;
+            }
+        }
+        preferred.push(best);
+    }
+    return preferred;
+};
+const resolveItemForSlot = (normalizedItems, original) => {
+    if (!original)
+        return undefined;
+    const exact = normalizedItems.find((item) => item.id === original.id);
+    if (exact)
+        return exact;
+    return normalizedItems.find((item) => item.category === original.category && item.layer === original.layer);
+};
+// Build a warmer outer layer plan for the max temperature target.
 function buildWarmthLayerForMaxWarmth(maxWarmth) {
     if (maxWarmth === undefined)
         return {};
-    const tops = clothingDatabase.items.filter((item) => item.category === "top");
-    const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
-    const outers = clothingDatabase.items.filter((item) => item.category === "outerwear");
+    const tops = filterByLayerPreference(clothingDatabase.items.filter((item) => item.category === "top"), [Layers.Mid]);
+    const bottoms = filterByLayerPreference(clothingDatabase.items.filter((item) => item.category === "bottom"), [Layers.Mid]);
+    const outers = filterByLayerPreference(clothingDatabase.items.filter((item) => item.category === "outerwear"), [Layers.Outer]);
     const top = pickClosestByWarmth(tops, maxWarmth);
     if (!top)
         return { maxWarmth };
     const bottomTarget = top.warmth > maxWarmth ? maxWarmth - 1 : maxWarmth;
     const bottom = pickClosestByWarmth(bottoms, bottomTarget);
-    if (!bottom)
-        return { maxWarmth, top };
-    const layerAverage = (top.warmth + bottom.warmth) / 2;
+    const layerPieces = [top, bottom].filter((item) => Boolean(item));
+    const layerAverage = layerPieces.length > 0
+        ? layerPieces.reduce((sum, item) => sum + item.warmth, 0) / layerPieces.length
+        : undefined;
     let overlayer;
-    if (layerAverage < maxWarmth) {
-        const overlaysMeetingTarget = outers.filter((outer) => Math.ceil((top.warmth + bottom.warmth + outer.warmth) / 3) >= maxWarmth);
+    if (layerAverage !== undefined && layerAverage < maxWarmth) {
+        const overlaysMeetingTarget = outers.filter((outer) => {
+            const totalWarmth = layerPieces.reduce((sum, item) => sum + item.warmth, 0) + outer.warmth;
+            const averageWarmth = totalWarmth / (layerPieces.length + 1);
+            return Math.ceil(averageWarmth) >= maxWarmth;
+        });
         overlayer =
             overlaysMeetingTarget.sort((a, b) => a.warmth - b.warmth)[0] ??
                 outers.sort((a, b) => b.warmth - a.warmth)[0];
@@ -57,11 +118,12 @@ function buildWarmthLayerForMaxWarmth(maxWarmth) {
         layerAverage,
     };
 }
+// Build a lighter inner layer plan for the min temperature target.
 function buildWarmthLayerForMinWarmth(minWarmth) {
     if (minWarmth === undefined)
         return {};
-    const tops = clothingDatabase.items.filter((item) => item.category === "top");
-    const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
+    const tops = filterByLayerPreference(clothingDatabase.items.filter((item) => item.category === "top"), [Layers.Main]);
+    const bottoms = filterByLayerPreference(clothingDatabase.items.filter((item) => item.category === "bottom"), [Layers.Main]);
     const top = pickClosestByWarmth(tops, minWarmth);
     if (!top)
         return { minWarmth };
@@ -77,10 +139,34 @@ function buildWarmthLayerForMinWarmth(minWarmth) {
         layerAverage,
     };
 }
-function buildLayeredOutfit(innerPlan, outerPlan) {
+// Combine inner/outer plans while avoiding duplicate items.
+function pickBestShoes(items, summaryMatches) {
+    const shoes = items.filter((item) => item.category === "shoes");
+    if (shoes.length === 0)
+        return undefined;
+    const targetWater = summaryMatches.waterResistance ?? 0;
+    const targetWind = summaryMatches.windchillPrevention ?? 0;
+    const candidates = shoes.filter((item) => item.waterResistance >= targetWater && item.windchillPrevention >= targetWind);
+    const pool = candidates.length > 0 ? candidates : shoes;
+    return pool.sort((a, b) => b.warmth - a.warmth)[0];
+}
+function pickSocks(items, summaryMatches) {
+    const warmthMin = summaryMatches.warmthMinTemp ?? 0;
+    const requiresSocks = warmthMin <= 4;
+    if (!requiresSocks)
+        return undefined;
+    const socks = items.filter((item) => item.layer === Layers.Base && item.category === "accessory");
+    return socks.sort((a, b) => b.warmth - a.warmth)[0];
+}
+function buildLayeredOutfit(innerPlan, outerPlan, summaryMatches) {
     const tops = clothingDatabase.items.filter((item) => item.category === "top");
     const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
     const outers = clothingDatabase.items.filter((item) => item.category === "outerwear");
+    const outerTopCandidates = filterByLayerPreference(tops, [Layers.Mid]);
+    const outerBottomCandidates = filterByLayerPreference(bottoms, [Layers.Mid]);
+    const outerwearCandidates = filterByLayerPreference(outers, [Layers.Outer]);
+    const shoes = pickBestShoes(clothingDatabase.items, summaryMatches);
+    const socks = pickSocks(clothingDatabase.items, summaryMatches);
     const items = [];
     const addUnique = (item) => {
         if (!item)
@@ -99,20 +185,20 @@ function buildLayeredOutfit(innerPlan, outerPlan) {
     let outerBottom = outerPlan.bottom;
     if (outerTop && usedIds.has(outerTop.id)) {
         const target = outerPlan.maxWarmth ?? outerTop.warmth;
-        outerTop = pickClosestByWarmthExcluding(tops, target, usedIds);
+        outerTop = pickClosestByWarmthExcluding(outerTopCandidates, target, usedIds);
     }
     if (outerTop)
         usedIds.add(outerTop.id);
     if (outerBottom && usedIds.has(outerBottom.id)) {
         const target = outerPlan.maxWarmth ?? outerBottom.warmth;
-        outerBottom = pickClosestByWarmthExcluding(bottoms, target, usedIds);
+        outerBottom = pickClosestByWarmthExcluding(outerBottomCandidates, target, usedIds);
     }
     if (outerBottom)
         usedIds.add(outerBottom.id);
     let overlayer = outerPlan.overlayer;
     if (overlayer && usedIds.has(overlayer.id)) {
         const target = outerPlan.maxWarmth ?? overlayer.warmth;
-        overlayer = pickClosestByWarmthExcluding(outers, target, usedIds);
+        overlayer = pickClosestByWarmthExcluding(outerwearCandidates, target, usedIds);
     }
     if (overlayer)
         usedIds.add(overlayer.id);
@@ -122,14 +208,27 @@ function buildLayeredOutfit(innerPlan, outerPlan) {
     addUnique(outer.top);
     addUnique(outer.bottom);
     addUnique(overlayer);
+    addUnique(shoes);
+    addUnique(socks);
+    const normalizedItems = preferComplementMatches(items);
+    const resolvedInnerTop = resolveItemForSlot(normalizedItems, inner.top);
+    const resolvedInnerBottom = resolveItemForSlot(normalizedItems, inner.bottom);
+    const resolvedOuterTop = resolveItemForSlot(normalizedItems, outer.top);
+    const resolvedOuterBottom = resolveItemForSlot(normalizedItems, outer.bottom);
+    const resolvedOverlayer = resolveItemForSlot(normalizedItems, overlayer);
+    const resolvedShoes = resolveItemForSlot(normalizedItems, shoes);
+    const resolvedSocks = resolveItemForSlot(normalizedItems, socks);
     return {
-        inner,
-        outer,
-        overlayer,
-        items,
+        inner: { top: resolvedInnerTop, bottom: resolvedInnerBottom },
+        outer: { top: resolvedOuterTop, bottom: resolvedOuterBottom },
+        overlayer: resolvedOverlayer,
+        shoes: resolvedShoes,
+        socks: resolvedSocks,
+        items: normalizedItems,
     };
 }
-function getRecommendedByCategory(category) {
+// Filter items that match the computed weather-driven requirements.
+function getRecommendedByCategory(summaryMatches, category) {
     return clothingDatabase.items.filter((item) => {
         if (category && item.category !== category)
             return false;
@@ -141,7 +240,7 @@ function getRecommendedByCategory(category) {
             if (item.warmth < minAcceptableWarmth || item.warmth > maxAcceptableWarmth)
                 return false;
         }
-        const isOverlayer = item.category === "outerwear" || item.layer === "outer";
+        const isOverlayer = item.category === "outerwear" || (item.layer === Layers.Outer && item.category !== "shoes");
         if (isOverlayer &&
             summaryMatches.windchillPrevention !== undefined &&
             item.windchillPrevention < summaryMatches.windchillPrevention) {
@@ -152,11 +251,36 @@ function getRecommendedByCategory(category) {
         return true;
     });
 }
-const recommended = getRecommendedByCategory();
-const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
-const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);
-const layeredOutfit = buildLayeredOutfit(warmthInnerLayerPlan, warmthLayerPlan);
-console.log("[ClothesListGen] Recommended count:", recommended.length);
-console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
-console.log("[ClothesListGen] Outer layer plan:", warmthLayerPlan);
-console.log("[ClothesListGen] Layered outfit:", layeredOutfit);
+export function generateClothesList(options = {}) {
+    const { verbose = false } = options;
+    // Convert weather summary into preference targets (warmth, wind, rain).
+    const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
+    if (verbose) {
+        console.log("[ClothesListGen] Summary matches:", summaryMatches);
+    }
+    // Generate the list of viable clothing items.
+    const viableItems = getRecommendedByCategory(summaryMatches);
+    if (verbose) {
+        console.log("[ClothesListGen] Viable item count:", viableItems.length);
+    }
+    const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
+    const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);
+    const layeredOutfit = buildLayeredOutfit(warmthInnerLayerPlan, warmthLayerPlan, summaryMatches);
+    if (verbose) {
+        console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
+        console.log("[ClothesListGen] Outer layer plan:", warmthLayerPlan);
+        console.log("[ClothesListGen] Layered outfit:", layeredOutfit);
+        console.log("[ClothesListGen] Layered outfit items:", layeredOutfit.items.map((item) => `${item.name} (${item.category}, layer ${item.layer})`));
+    }
+    return {
+        summaryMatches,
+        viableItems,
+        warmthInnerLayerPlan,
+        warmthLayerPlan,
+        layeredOutfit,
+    };
+}
+const isMain = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+if (isMain) {
+    generateClothesList({ verbose: true });
+}

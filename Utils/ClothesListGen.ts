@@ -1,8 +1,10 @@
 //So this needs to make decisions based on the data from the filtered summary
 //And use the user's preferences to make a recommendation for the day
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { MatchSummaryToPrefs } from "./PrefMatching.js";
 import { Layers } from "./Layers.js";
-import type { PreferencesConfig } from "./PrefMatching.js";
+import type { PreferencesConfig, SummaryPrefMatches } from "./PrefMatching.js";
 import clothingData from "../data/clothing.json" with { type: "json" };
 import type { DaySummary } from "./OMSummary.js";
 import omSummaryData from "../data/om_summary.json" with { type: "json" };
@@ -32,16 +34,7 @@ type ClothingDatabase = {
   items: ClothingItem[];
 };
 
-const clothingDatabase = clothingData as ClothingDatabase;
-
-const OMSummary = omSummaryData as DaySummary;
-const preferencesConfig = preferencesData as PreferencesConfig;
-
-// Convert weather summary into preference targets (warmth, wind, rain).
-const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
-console.log("[ClothesListGen] Summary matches:", summaryMatches);
-
-type WarmthLayerPlan = {
+export type WarmthLayerPlan = {
   minWarmth?: number;
   maxWarmth?: number;
   top?: ClothingItem;
@@ -50,13 +43,30 @@ type WarmthLayerPlan = {
   layerAverage?: number;
 };
 
-type LayeredOutfit = {
+export type LayeredOutfit = {
   inner?: { top?: ClothingItem; bottom?: ClothingItem };
   outer?: { top?: ClothingItem; bottom?: ClothingItem };
   overlayer?: ClothingItem;
   shoes?: ClothingItem;
   socks?: ClothingItem;
   items: ClothingItem[];
+};
+
+export type ClothesListGenOutput = {
+  summaryMatches: SummaryPrefMatches;
+  viableItems: ClothingItem[];
+  warmthInnerLayerPlan: WarmthLayerPlan;
+  warmthLayerPlan: WarmthLayerPlan;
+  layeredOutfit: LayeredOutfit;
+};
+
+const clothingDatabase = clothingData as ClothingDatabase;
+
+const OMSummary = omSummaryData as DaySummary;
+const preferencesConfig = preferencesData as PreferencesConfig;
+
+type GenerateOptions = {
+  verbose?: boolean;
 };
 
 function pickClosestByWarmth(items: ClothingItem[], target: number): ClothingItem | undefined {
@@ -227,7 +237,7 @@ function buildWarmthLayerForMinWarmth(minWarmth?: number): WarmthLayerPlan {
 }
 
 // Combine inner/outer plans while avoiding duplicate items.
-function pickBestShoes(items: ClothingItem[]): ClothingItem | undefined {
+function pickBestShoes(items: ClothingItem[], summaryMatches: SummaryPrefMatches): ClothingItem | undefined {
   const shoes = items.filter((item) => item.category === "shoes");
   if (shoes.length === 0) return undefined;
 
@@ -242,9 +252,10 @@ function pickBestShoes(items: ClothingItem[]): ClothingItem | undefined {
   return pool.sort((a, b) => b.warmth - a.warmth)[0];
 }
 
-function pickSocks(items: ClothingItem[]): ClothingItem | undefined {
+function pickSocks(items: ClothingItem[], summaryMatches: SummaryPrefMatches): ClothingItem | undefined {
   const warmthMin = summaryMatches.warmthMinTemp ?? 0;
-  const requiresSocks = warmthMin <= 4;
+  // "Too cold for thongs" starts at warmth band 4 (<= ~22C), so always add socks from there down.
+  const requiresSocks = warmthMin >= 4;
   if (!requiresSocks) return undefined;
 
   const socks = items.filter(
@@ -256,6 +267,7 @@ function pickSocks(items: ClothingItem[]): ClothingItem | undefined {
 function buildLayeredOutfit(
   innerPlan: WarmthLayerPlan,
   outerPlan: WarmthLayerPlan,
+  summaryMatches: SummaryPrefMatches,
 ): LayeredOutfit {
   const tops = clothingDatabase.items.filter((item) => item.category === "top");
   const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
@@ -263,8 +275,8 @@ function buildLayeredOutfit(
   const outerTopCandidates = filterByLayerPreference(tops, [Layers.Mid]);
   const outerBottomCandidates = filterByLayerPreference(bottoms, [Layers.Mid]);
   const outerwearCandidates = filterByLayerPreference(outers, [Layers.Outer]);
-  const shoes = pickBestShoes(clothingDatabase.items);
-  const socks = pickSocks(clothingDatabase.items);
+  const shoes = pickBestShoes(clothingDatabase.items, summaryMatches);
+  const socks = pickSocks(clothingDatabase.items, summaryMatches);
 
   const items: ClothingItem[] = [];
   const addUnique = (item?: ClothingItem) => {
@@ -330,7 +342,10 @@ function buildLayeredOutfit(
 }
 
 // Filter items that match the computed weather-driven requirements.
-function getRecommendedByCategory(category?: string): ClothingItem[] {
+function getRecommendedByCategory(
+  summaryMatches: SummaryPrefMatches,
+  category?: string,
+): ClothingItem[] {
   return clothingDatabase.items.filter((item) => {
     if (category && item.category !== category) return false;
     const warmthTargets = [summaryMatches.warmthMinTemp, summaryMatches.warmthMaxTemp].filter(
@@ -356,27 +371,47 @@ function getRecommendedByCategory(category?: string): ClothingItem[] {
   });
 }
 
-// Generate the list of viable clothing items.
-const viableItems = getRecommendedByCategory();
+export function generateClothesList(options: GenerateOptions = {}): ClothesListGenOutput {
+  const { verbose = false } = options;
 
-console.log("[ClothesListGen] Viable item count:", viableItems.length);
+  // Convert weather summary into preference targets (warmth, wind, rain).
+  const summaryMatches = MatchSummaryToPrefs(OMSummary, preferencesConfig);
+  if (verbose) {
+    console.log("[ClothesListGen] Summary matches:", summaryMatches);
+  }
 
-const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
-const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);
-const layeredOutfit = buildLayeredOutfit(warmthInnerLayerPlan, warmthLayerPlan);
+  // Generate the list of viable clothing items.
+  const viableItems = getRecommendedByCategory(summaryMatches);
+  if (verbose) {
+    console.log("[ClothesListGen] Viable item count:", viableItems.length);
+  }
 
-console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
-console.log("[ClothesListGen] Outer layer plan:", warmthLayerPlan);
-console.log("[ClothesListGen] Layered outfit:", layeredOutfit);
-console.log(
-  "[ClothesListGen] Layered outfit items:",
-  layeredOutfit.items.map((item) => `${item.name} (${item.category}, layer ${item.layer})`),
-);
+  const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
+  const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);
+  const layeredOutfit = buildLayeredOutfit(warmthInnerLayerPlan, warmthLayerPlan, summaryMatches);
 
-export const clothesListGenOutput = {
-  summaryMatches,
-  viableItems,
-  warmthInnerLayerPlan,
-  warmthLayerPlan,
-  layeredOutfit,
-};
+  if (verbose) {
+    console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
+    console.log("[ClothesListGen] Outer layer plan:", warmthLayerPlan);
+    console.log("[ClothesListGen] Layered outfit:", layeredOutfit);
+    console.log(
+      "[ClothesListGen] Layered outfit items:",
+      layeredOutfit.items.map((item) => `${item.name} (${item.category}, layer ${item.layer})`),
+    );
+  }
+
+  return {
+    summaryMatches,
+    viableItems,
+    warmthInnerLayerPlan,
+    warmthLayerPlan,
+    layeredOutfit,
+  };
+}
+
+const isMain =
+  process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+
+if (isMain) {
+  generateClothesList({ verbose: true });
+}

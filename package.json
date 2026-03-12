@@ -10,6 +10,7 @@
     "build": "tsc -p tsconfig.json",
     "dev:backend": "tsx watch src/backend.ts",
     "build:backend": "tsc -p tsconfig.json --outDir dist",
+    "ui": "tsx Utils/UiCli.ts",
     "start": "node dist/backend.js",
     "test": "vitest run",
     "test:watch": "vitest"

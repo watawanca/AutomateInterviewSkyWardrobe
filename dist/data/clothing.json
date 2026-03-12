@@ -6,257 +6,733 @@
             "id": "top-tee-cotton",
             "name": "Cotton T-Shirt",
             "category": "top",
-            "layer": "base",
-            "gender": ["women", "men", "unisex"],
+            "layer": 1,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 2,
             "windchillPrevention": 1,
             "waterResistance": 0,
             "breathability": 9,
-            "style": ["casual", "streetwear", "minimal"],
-            "complements": ["bottom-jeans-slim", "bottom-chino", "shoe-sneaker"],
-            "weatherTags": ["sunny", "humid"],
+            "style": [
+                "casual",
+                "streetwear",
+                "minimal"
+            ],
+            "complements": [
+                "bottom-jeans-slim",
+                "bottom-chino",
+                "shoe-sneaker"
+            ],
+            "weatherTags": [
+                "sunny",
+                "humid"
+            ],
             "formality": "casual",
-            "activity": ["daily", "commute"]
+            "activity": [
+                "daily",
+                "commute"
+            ]
         },
         {
             "id": "top-oxford-shirt",
             "name": "Oxford Shirt",
             "category": "top",
-            "layer": "base",
-            "gender": ["women", "men", "unisex"],
+            "layer": 1,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 4,
             "windchillPrevention": 3,
             "waterResistance": 1,
             "breathability": 7,
-            "style": ["smart-casual", "business-casual"],
-            "complements": ["bottom-chino", "bottom-trouser", "shoe-loafer"],
-            "weatherTags": ["cloudy", "mild"],
+            "style": [
+                "smart-casual",
+                "business-casual"
+            ],
+            "complements": [
+                "bottom-chino",
+                "bottom-trouser",
+                "shoe-loafer"
+            ],
+            "weatherTags": [
+                "cloudy",
+                "mild"
+            ],
             "formality": "smart-casual",
-            "activity": ["office", "daily"]
+            "activity": [
+                "office",
+                "daily"
+            ]
         },
         {
             "id": "outer-light-windbreaker",
             "name": "Light Windbreaker",
             "category": "outerwear",
-            "layer": "outer",
-            "gender": ["women", "men", "unisex"],
+            "layer": 3,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 4,
             "windchillPrevention": 8,
             "waterResistance": 6,
             "breathability": 6,
-            "style": ["sporty", "casual"],
-            "complements": ["top-tee-cotton", "bottom-jogger", "shoe-runner"],
-            "weatherTags": ["windy", "light-rain"],
+            "style": [
+                "sporty",
+                "casual"
+            ],
+            "complements": [
+                "top-tee-cotton",
+                "bottom-jogger",
+                "shoe-runner"
+            ],
+            "weatherTags": [
+                "windy",
+                "light-rain"
+            ],
             "formality": "casual",
-            "activity": ["commute", "walking", "outdoor"]
+            "activity": [
+                "commute",
+                "walking",
+                "outdoor"
+            ]
         },
         {
             "id": "outer-puffer-mid",
             "name": "Midweight Puffer Jacket",
             "category": "outerwear",
-            "layer": "outer",
-            "gender": ["women", "men", "unisex"],
+            "layer": 3,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 9,
             "windchillPrevention": 9,
             "waterResistance": 6,
             "breathability": 4,
-            "style": ["casual", "winter"],
-            "complements": ["top-knit-sweater", "bottom-jeans-slim", "shoe-boot-waterproof"],
-            "weatherTags": ["cold", "windy"],
+            "style": [
+                "casual",
+                "winter"
+            ],
+            "complements": [
+                "top-knit-sweater",
+                "bottom-jeans-slim",
+                "shoe-boot-waterproof"
+            ],
+            "weatherTags": [
+                "cold",
+                "windy"
+            ],
             "formality": "casual",
-            "activity": ["daily", "commute", "outdoor"]
+            "activity": [
+                "daily",
+                "commute",
+                "outdoor"
+            ]
         },
         {
             "id": "top-knit-sweater",
             "name": "Knit Sweater",
             "category": "top",
-            "layer": "mid",
-            "gender": ["women", "men", "unisex"],
+            "layer": 2,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 7,
             "windchillPrevention": 4,
             "waterResistance": 0,
             "breathability": 5,
-            "style": ["casual", "smart-casual", "winter"],
-            "complements": ["bottom-jeans-slim", "bottom-trouser", "outer-puffer-mid"],
-            "weatherTags": ["cold", "cloudy"],
+            "style": [
+                "casual",
+                "smart-casual",
+                "winter"
+            ],
+            "complements": [
+                "bottom-jeans-slim",
+                "bottom-trouser",
+                "outer-puffer-mid"
+            ],
+            "weatherTags": [
+                "cold",
+                "cloudy"
+            ],
             "formality": "smart-casual",
-            "activity": ["daily", "office"]
+            "activity": [
+                "daily",
+                "office"
+            ]
         },
         {
             "id": "bottom-jeans-slim",
             "name": "Slim Jeans",
             "category": "bottom",
-            "layer": "base",
-            "gender": ["women", "men", "unisex"],
+            "layer": 1,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 5,
             "windchillPrevention": 5,
             "waterResistance": 2,
             "breathability": 5,
-            "style": ["casual", "streetwear"],
-            "complements": ["top-tee-cotton", "top-knit-sweater", "shoe-sneaker"],
-            "weatherTags": ["mild", "cloudy"],
+            "style": [
+                "casual",
+                "streetwear"
+            ],
+            "complements": [
+                "top-tee-cotton",
+                "top-knit-sweater",
+                "shoe-sneaker"
+            ],
+            "weatherTags": [
+                "mild",
+                "cloudy"
+            ],
             "formality": "casual",
-            "activity": ["daily", "commute"]
+            "activity": [
+                "daily",
+                "commute"
+            ]
         },
         {
             "id": "bottom-chino",
             "name": "Chino Pants",
             "category": "bottom",
-            "layer": "base",
-            "gender": ["women", "men", "unisex"],
+            "layer": 1,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 4,
             "windchillPrevention": 3,
             "waterResistance": 1,
             "breathability": 6,
-            "style": ["smart-casual", "business-casual"],
-            "complements": ["top-oxford-shirt", "shoe-loafer", "outer-trench"],
-            "weatherTags": ["mild", "dry"],
+            "style": [
+                "smart-casual",
+                "business-casual"
+            ],
+            "complements": [
+                "top-oxford-shirt",
+                "shoe-loafer",
+                "outer-trench"
+            ],
+            "weatherTags": [
+                "mild",
+                "dry"
+            ],
             "formality": "smart-casual",
-            "activity": ["office", "daily"]
+            "activity": [
+                "office",
+                "daily"
+            ]
         },
         {
             "id": "bottom-jogger",
             "name": "Technical Joggers",
             "category": "bottom",
-            "layer": "base",
-            "gender": ["women", "men", "unisex"],
+            "layer": 1,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 5,
             "windchillPrevention": 4,
             "waterResistance": 4,
             "breathability": 7,
-            "style": ["sporty", "athleisure"],
-            "complements": ["outer-light-windbreaker", "top-tee-cotton", "shoe-runner"],
-            "weatherTags": ["windy", "light-rain", "mild"],
+            "style": [
+                "sporty",
+                "athleisure"
+            ],
+            "complements": [
+                "outer-light-windbreaker",
+                "top-tee-cotton",
+                "shoe-runner"
+            ],
+            "weatherTags": [
+                "windy",
+                "light-rain",
+                "mild"
+            ],
             "formality": "casual",
-            "activity": ["outdoor", "exercise", "daily"]
+            "activity": [
+                "outdoor",
+                "exercise",
+                "daily"
+            ]
         },
         {
             "id": "shoe-sneaker",
             "name": "Everyday Sneakers",
             "category": "shoes",
-            "layer": "footwear",
-            "gender": ["women", "men", "unisex"],
+            "layer": 3,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 3,
             "windchillPrevention": 2,
             "waterResistance": 2,
             "breathability": 8,
-            "style": ["casual", "streetwear", "minimal"],
-            "complements": ["bottom-jeans-slim", "bottom-jogger", "top-tee-cotton"],
-            "weatherTags": ["dry", "sunny"],
+            "style": [
+                "casual",
+                "streetwear",
+                "minimal"
+            ],
+            "complements": [
+                "bottom-jeans-slim",
+                "bottom-jogger",
+                "top-tee-cotton"
+            ],
+            "weatherTags": [
+                "dry",
+                "sunny"
+            ],
             "formality": "casual",
-            "activity": ["daily", "commute"]
+            "activity": [
+                "daily",
+                "commute"
+            ]
         },
         {
             "id": "shoe-boot-waterproof",
             "name": "Waterproof Boots",
             "category": "shoes",
-            "layer": "footwear",
-            "gender": ["women", "men", "unisex"],
+            "layer": 3,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 7,
             "windchillPrevention": 7,
             "waterResistance": 9,
             "breathability": 4,
-            "style": ["utility", "winter", "outdoor"],
-            "complements": ["outer-puffer-mid", "bottom-jeans-slim", "accessory-umbrella"],
-            "weatherTags": ["rain", "cold", "windy"],
+            "style": [
+                "utility",
+                "winter",
+                "outdoor"
+            ],
+            "complements": [
+                "outer-puffer-mid",
+                "bottom-jeans-slim",
+                "accessory-umbrella"
+            ],
+            "weatherTags": [
+                "rain",
+                "cold",
+                "windy"
+            ],
             "formality": "casual",
-            "activity": ["commute", "outdoor"]
+            "activity": [
+                "commute",
+                "outdoor"
+            ]
         },
         {
             "id": "outer-trench",
             "name": "Trench Coat",
             "category": "outerwear",
-            "layer": "outer",
-            "gender": ["women", "men", "unisex"],
+            "layer": 3,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 6,
             "windchillPrevention": 7,
             "waterResistance": 7,
             "breathability": 5,
-            "style": ["classic", "smart-casual", "business"],
-            "complements": ["top-oxford-shirt", "bottom-trouser", "shoe-loafer"],
-            "weatherTags": ["rain", "windy", "cloudy"],
+            "style": [
+                "classic",
+                "smart-casual",
+                "business"
+            ],
+            "complements": [
+                "top-oxford-shirt",
+                "bottom-trouser",
+                "shoe-loafer"
+            ],
+            "weatherTags": [
+                "rain",
+                "windy",
+                "cloudy"
+            ],
             "formality": "business-casual",
-            "activity": ["office", "commute"]
+            "activity": [
+                "office",
+                "commute"
+            ]
         },
         {
             "id": "bottom-trouser",
             "name": "Wool Blend Trousers",
             "category": "bottom",
-            "layer": "base",
-            "gender": ["women", "men", "unisex"],
+            "layer": 1,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 6,
             "windchillPrevention": 5,
             "waterResistance": 1,
             "breathability": 5,
-            "style": ["business", "smart-casual"],
-            "complements": ["top-oxford-shirt", "outer-trench", "shoe-loafer"],
-            "weatherTags": ["cold", "mild", "dry"],
+            "style": [
+                "business",
+                "smart-casual"
+            ],
+            "complements": [
+                "top-oxford-shirt",
+                "outer-trench",
+                "shoe-loafer"
+            ],
+            "weatherTags": [
+                "cold",
+                "mild",
+                "dry"
+            ],
             "formality": "business",
-            "activity": ["office", "formal-event"]
+            "activity": [
+                "office",
+                "formal-event"
+            ]
         },
         {
             "id": "shoe-loafer",
             "name": "Leather Loafers",
             "category": "shoes",
-            "layer": "footwear",
-            "gender": ["women", "men", "unisex"],
+            "layer": 3,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 3,
             "windchillPrevention": 2,
             "waterResistance": 2,
             "breathability": 6,
-            "style": ["business", "smart-casual"],
-            "complements": ["bottom-trouser", "bottom-chino", "top-oxford-shirt"],
-            "weatherTags": ["dry", "mild"],
+            "style": [
+                "business",
+                "smart-casual"
+            ],
+            "complements": [
+                "bottom-trouser",
+                "bottom-chino",
+                "top-oxford-shirt"
+            ],
+            "weatherTags": [
+                "dry",
+                "mild"
+            ],
             "formality": "business-casual",
-            "activity": ["office", "formal-event"]
+            "activity": [
+                "office",
+                "formal-event"
+            ]
         },
         {
             "id": "shoe-runner",
             "name": "Running Shoes",
             "category": "shoes",
-            "layer": "footwear",
-            "gender": ["women", "men", "unisex"],
+            "layer": 3,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 2,
             "windchillPrevention": 2,
             "waterResistance": 3,
             "breathability": 9,
-            "style": ["sporty", "athleisure"],
-            "complements": ["bottom-jogger", "top-tee-cotton", "outer-light-windbreaker"],
-            "weatherTags": ["sunny", "humid", "mild"],
+            "style": [
+                "sporty",
+                "athleisure"
+            ],
+            "complements": [
+                "bottom-jogger",
+                "top-tee-cotton",
+                "outer-light-windbreaker"
+            ],
+            "weatherTags": [
+                "sunny",
+                "humid",
+                "mild"
+            ],
             "formality": "casual",
-            "activity": ["exercise", "outdoor", "daily"]
+            "activity": [
+                "exercise",
+                "outdoor",
+                "daily"
+            ]
         },
         {
             "id": "accessory-umbrella",
             "name": "Compact Umbrella",
             "category": "accessory",
-            "layer": "accessory",
-            "gender": ["women", "men", "unisex"],
+            "layer": 4,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 0,
             "windchillPrevention": 2,
             "waterResistance": 10,
             "breathability": 10,
-            "style": ["utility"],
-            "complements": ["outer-trench", "shoe-boot-waterproof", "outer-light-windbreaker"],
-            "weatherTags": ["rain"],
+            "style": [
+                "utility"
+            ],
+            "complements": [
+                "outer-trench",
+                "shoe-boot-waterproof",
+                "outer-light-windbreaker"
+            ],
+            "weatherTags": [
+                "rain"
+            ],
             "formality": "all",
-            "activity": ["daily", "commute", "office", "outdoor"]
+            "activity": [
+                "daily",
+                "commute",
+                "office",
+                "outdoor"
+            ]
         },
         {
             "id": "accessory-beanie",
             "name": "Wool Beanie",
             "category": "accessory",
-            "layer": "accessory",
-            "gender": ["women", "men", "unisex"],
+            "layer": 4,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
             "warmth": 6,
             "windchillPrevention": 7,
             "waterResistance": 1,
             "breathability": 5,
-            "style": ["casual", "winter"],
-            "complements": ["outer-puffer-mid", "top-knit-sweater"],
-            "weatherTags": ["cold", "windy"],
+            "style": [
+                "casual",
+                "winter"
+            ],
+            "complements": [
+                "outer-puffer-mid",
+                "top-knit-sweater"
+            ],
+            "weatherTags": [
+                "cold",
+                "windy"
+            ],
             "formality": "casual",
-            "activity": ["daily", "outdoor"]
+            "activity": [
+                "daily",
+                "outdoor"
+            ]
+        },
+        {
+            "id": "top-thermal-base",
+            "name": "Thermal Base Top",
+            "category": "top",
+            "layer": 0,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
+            "warmth": 3,
+            "windchillPrevention": 2,
+            "waterResistance": 0,
+            "breathability": 6,
+            "style": [
+                "utility",
+                "winter"
+            ],
+            "complements": [
+                "bottom-thermal-leggings",
+                "bottom-jeans-slim",
+                "shoe-boot-waterproof"
+            ],
+            "weatherTags": [
+                "cold"
+            ],
+            "formality": "casual",
+            "activity": [
+                "daily",
+                "outdoor"
+            ]
+        },
+        {
+            "id": "bottom-thermal-leggings",
+            "name": "Thermal Leggings",
+            "category": "bottom",
+            "layer": 0,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
+            "warmth": 3,
+            "windchillPrevention": 2,
+            "waterResistance": 0,
+            "breathability": 6,
+            "style": [
+                "utility",
+                "winter"
+            ],
+            "complements": [
+                "top-thermal-base",
+                "bottom-jeans-slim",
+                "shoe-boot-waterproof"
+            ],
+            "weatherTags": [
+                "cold"
+            ],
+            "formality": "casual",
+            "activity": [
+                "daily",
+                "outdoor"
+            ]
+        },
+        {
+            "id": "accessory-socks-wool",
+            "name": "Wool Socks",
+            "category": "accessory",
+            "layer": 0,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
+            "warmth": 2,
+            "windchillPrevention": 1,
+            "waterResistance": 0,
+            "breathability": 5,
+            "style": [
+                "utility",
+                "winter"
+            ],
+            "complements": [
+                "shoe-boot-waterproof",
+                "shoe-sneaker"
+            ],
+            "weatherTags": [
+                "cold"
+            ],
+            "formality": "casual",
+            "activity": [
+                "daily",
+                "outdoor"
+            ]
+        },
+        {
+            "id": "accessory-socks-cotton-ankle",
+            "name": "Cotton Ankle Socks",
+            "category": "accessory",
+            "layer": 0,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
+            "warmth": 1,
+            "windchillPrevention": 0,
+            "waterResistance": 0,
+            "breathability": 8,
+            "style": [
+                "casual",
+                "minimal"
+            ],
+            "complements": [
+                "shoe-sneaker",
+                "shoe-runner"
+            ],
+            "weatherTags": [
+                "mild",
+                "warm"
+            ],
+            "formality": "casual",
+            "activity": [
+                "daily",
+                "commute"
+            ]
+        },
+        {
+            "id": "accessory-socks-thermal",
+            "name": "Thermal Socks",
+            "category": "accessory",
+            "layer": 0,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
+            "warmth": 4,
+            "windchillPrevention": 2,
+            "waterResistance": 1,
+            "breathability": 4,
+            "style": [
+                "utility",
+                "winter"
+            ],
+            "complements": [
+                "shoe-boot-waterproof",
+                "outer-puffer-mid"
+            ],
+            "weatherTags": [
+                "cold",
+                "windy"
+            ],
+            "formality": "casual",
+            "activity": [
+                "outdoor",
+                "daily"
+            ]
+        },
+        {
+            "id": "accessory-socks-crew-sport",
+            "name": "Sport Crew Socks",
+            "category": "accessory",
+            "layer": 0,
+            "gender": [
+                "women",
+                "men",
+                "unisex"
+            ],
+            "warmth": 2,
+            "windchillPrevention": 1,
+            "waterResistance": 0,
+            "breathability": 7,
+            "style": [
+                "sporty",
+                "casual"
+            ],
+            "complements": [
+                "shoe-runner",
+                "bottom-jogger"
+            ],
+            "weatherTags": [
+                "mild",
+                "humid"
+            ],
+            "formality": "casual",
+            "activity": [
+                "walking",
+                "gym"
+            ]
         }
     ]
 }

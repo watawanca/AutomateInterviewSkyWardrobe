@@ -1,5 +1,5 @@
 function matchBand(value, bands) {
-    return bands.find((band) => value >= band.min && value <= band.max) ?? bands.at(-1);
+    return bands.find((band) => value >= band.min && value <= band.max);
 }
 export function TempWarmthMatch(tempC, prefs) {
     return matchBand(tempC, prefs.warmthToTemperatureRangeC);
@@ -15,10 +15,16 @@ export function MatchSummaryToPrefs(summary, prefs) {
     const minTempBand = TempWarmthMatch(summary.daylightTemperatureC.min, prefs);
     const windBand = WindResMatch(summary.daylightWindSpeedKmh.max, prefs);
     const rainBand = RainResMatch(summary.dailyRain.totalDepthMm, prefs);
+    const fallback = prefs.fallbackMatches ?? {
+        warmthMaxTemp: 5,
+        warmthMinTemp: 6,
+        windchillPrevention: 2,
+        waterResistance: 0,
+    };
     return {
-        warmthMaxTemp: maxTempBand?.warmth,
-        warmthMinTemp: minTempBand?.warmth,
-        windchillPrevention: windBand?.windchillPrevention,
-        waterResistance: rainBand?.waterResistance,
+        warmthMaxTemp: maxTempBand?.warmth ?? fallback.warmthMaxTemp,
+        warmthMinTemp: minTempBand?.warmth ?? fallback.warmthMinTemp,
+        windchillPrevention: windBand?.windchillPrevention ?? fallback.windchillPrevention,
+        waterResistance: rainBand?.waterResistance ?? fallback.waterResistance,
     };
 }

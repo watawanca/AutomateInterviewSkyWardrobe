@@ -1,15 +1,21 @@
-//So this needs to make decisions based on the data from the filtered summary
-//And use the user's preferences to make a recommendation for the day
+// Core outfit recommendation engine driven by weather summary + user prefs.
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+// Map weather summary to preference targets.
 import { MatchSummaryToPrefs } from "./PrefMatching.js";
+// Numeric layer constants used by clothing data.
 import { Layers } from "./Layers.js";
+// Local clothing database.
 import clothingData from "../data/clothing.json" with { type: "json" };
 import omSummaryData from "../data/om_summary.json" with { type: "json" };
+// User preferences and thresholds.
 import preferencesData from "../config/preferences.config.json" with { type: "json" };
+// Parsed clothing DB.
 const clothingDatabase = clothingData;
+// Snapshot of weather summary and preferences.
 const OMSummary = omSummaryData;
 const preferencesConfig = preferencesData;
+// Pick the item with warmth closest to the target.
 function pickClosestByWarmth(items, target) {
     if (items.length === 0)
         return undefined;
@@ -25,14 +31,17 @@ function pickClosestByWarmth(items, target) {
         return current.warmth > best.warmth ? current : best;
     });
 }
+// Pick the best warmth match while excluding already-selected items.
 function pickClosestByWarmthExcluding(items, target, excludeIds) {
     const filtered = items.filter((item) => !excludeIds.has(item.id));
     return pickClosestByWarmth(filtered, target);
 }
+// Prefer items from specified layers if they exist.
 const filterByLayerPreference = (items, preferredLayers) => {
     const preferred = items.filter((item) => preferredLayers.includes(item.layer));
     return preferred.length > 0 ? preferred : items;
 };
+// Prefer items that have complement relationships within the current selection.
 const preferComplementMatches = (items) => {
     const byKey = new Map();
     for (const item of items) {
@@ -75,6 +84,7 @@ const preferComplementMatches = (items) => {
     }
     return preferred;
 };
+// Resolve an item from the normalized list to keep output consistent.
 const resolveItemForSlot = (normalizedItems, original) => {
     if (!original)
         return undefined;
@@ -139,7 +149,7 @@ function buildWarmthLayerForMinWarmth(minWarmth) {
         layerAverage,
     };
 }
-// Combine inner/outer plans while avoiding duplicate items.
+// Choose shoes based on wind/water requirements.
 function pickBestShoes(items, summaryMatches) {
     const shoes = items.filter((item) => item.category === "shoes");
     if (shoes.length === 0)
@@ -150,14 +160,17 @@ function pickBestShoes(items, summaryMatches) {
     const pool = candidates.length > 0 ? candidates : shoes;
     return pool.sort((a, b) => b.warmth - a.warmth)[0];
 }
+// Always add socks once it is too cold for thongs.
 function pickSocks(items, summaryMatches) {
     const warmthMin = summaryMatches.warmthMinTemp ?? 0;
-    const requiresSocks = warmthMin <= 4;
+    // "Too cold for thongs" starts at warmth band 4 (<= ~22C), so always add socks from there down.
+    const requiresSocks = warmthMin >= 4;
     if (!requiresSocks)
         return undefined;
     const socks = items.filter((item) => item.layer === Layers.Base && item.category === "accessory");
     return socks.sort((a, b) => b.warmth - a.warmth)[0];
 }
+// Merge inner/outer selections and prevent duplicates.
 function buildLayeredOutfit(innerPlan, outerPlan, summaryMatches) {
     const tops = clothingDatabase.items.filter((item) => item.category === "top");
     const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
@@ -251,6 +264,7 @@ function getRecommendedByCategory(summaryMatches, category) {
         return true;
     });
 }
+// Main entry point for generating outfit suggestions.
 export function generateClothesList(options = {}) {
     const { verbose = false } = options;
     // Convert weather summary into preference targets (warmth, wind, rain).
@@ -280,6 +294,7 @@ export function generateClothesList(options = {}) {
         layeredOutfit,
     };
 }
+// Run in standalone mode when invoked directly via tsx.
 const isMain = process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 if (isMain) {
     generateClothesList({ verbose: true });

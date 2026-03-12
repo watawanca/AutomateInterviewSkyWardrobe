@@ -1,15 +1,20 @@
+// Find the band whose min/max range includes the provided value.
 function matchBand(value, bands) {
     return bands.find((band) => value >= band.min && value <= band.max);
 }
+// Match a temperature to a warmth band.
 export function TempWarmthMatch(tempC, prefs) {
     return matchBand(tempC, prefs.warmthToTemperatureRangeC);
 }
+// Match wind speed to a windchill prevention band.
 export function WindResMatch(windSpeedKmh, prefs) {
     return matchBand(windSpeedKmh, prefs.windchillPreventionToWindSpeedKmh);
 }
+// Match rain depth to a water resistance band.
 export function RainResMatch(rainDepthMm, prefs) {
     return matchBand(rainDepthMm, prefs.waterResistanceToRainDepthMm);
 }
+// Convert the daily summary into preferred targets for outfit picking.
 export function MatchSummaryToPrefs(summary, prefs) {
     const maxTempBand = TempWarmthMatch(summary.daylightTemperatureC.max, prefs);
     const minTempBand = TempWarmthMatch(summary.daylightTemperatureC.min, prefs);

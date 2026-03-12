@@ -80,27 +80,51 @@ function pickClosestByWarmthExcluding(
   return pickClosestByWarmth(filtered, target);
 }
 
+const filterByLayerPreference = (
+  items: ClothingItem[],
+  preferredLayers: number[],
+): ClothingItem[] => {
+  const preferred = items.filter((item) => preferredLayers.includes(item.layer));
+  return preferred.length > 0 ? preferred : items;
+};
+
 // Build a warmer outer layer plan for the max temperature target.
 function buildWarmthLayerForMaxWarmth(maxWarmth?: number): WarmthLayerPlan {
   if (maxWarmth === undefined) return {};
 
-  const tops = clothingDatabase.items.filter((item) => item.category === "top");
-  const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
-  const outers = clothingDatabase.items.filter((item) => item.category === "outerwear");
+  const tops = filterByLayerPreference(
+    clothingDatabase.items.filter((item) => item.category === "top"),
+    [Layers.Mid],
+  );
+  const bottoms = filterByLayerPreference(
+    clothingDatabase.items.filter((item) => item.category === "bottom"),
+    [Layers.Mid],
+  );
+  const outers = filterByLayerPreference(
+    clothingDatabase.items.filter((item) => item.category === "outerwear"),
+    [Layers.Outer],
+  );
 
   const top = pickClosestByWarmth(tops, maxWarmth);
   if (!top) return { maxWarmth };
 
   const bottomTarget = top.warmth > maxWarmth ? maxWarmth - 1 : maxWarmth;
   const bottom = pickClosestByWarmth(bottoms, bottomTarget);
-  if (!bottom) return { maxWarmth, top };
-
-  const layerAverage = (top.warmth + bottom.warmth) / 2;
+  const layerPieces = [top, bottom].filter((item): item is ClothingItem => Boolean(item));
+  const layerAverage =
+    layerPieces.length > 0
+      ? layerPieces.reduce((sum, item) => sum + item.warmth, 0) / layerPieces.length
+      : undefined;
   let overlayer: ClothingItem | undefined;
 
-  if (layerAverage < maxWarmth) {
+  if (layerAverage !== undefined && layerAverage < maxWarmth) {
     const overlaysMeetingTarget = outers.filter(
-      (outer) => Math.ceil((top.warmth + bottom.warmth + outer.warmth) / 3) >= maxWarmth,
+      (outer) => {
+        const totalWarmth =
+          layerPieces.reduce((sum, item) => sum + item.warmth, 0) + outer.warmth;
+        const averageWarmth = totalWarmth / (layerPieces.length + 1);
+        return Math.ceil(averageWarmth) >= maxWarmth;
+      },
     );
     overlayer =
       overlaysMeetingTarget.sort((a, b) => a.warmth - b.warmth)[0] ??
@@ -120,8 +144,14 @@ function buildWarmthLayerForMaxWarmth(maxWarmth?: number): WarmthLayerPlan {
 function buildWarmthLayerForMinWarmth(minWarmth?: number): WarmthLayerPlan {
   if (minWarmth === undefined) return {};
 
-  const tops = clothingDatabase.items.filter((item) => item.category === "top");
-  const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
+  const tops = filterByLayerPreference(
+    clothingDatabase.items.filter((item) => item.category === "top"),
+    [Layers.Main],
+  );
+  const bottoms = filterByLayerPreference(
+    clothingDatabase.items.filter((item) => item.category === "bottom"),
+    [Layers.Main],
+  );
 
   const top = pickClosestByWarmth(tops, minWarmth);
   if (!top) return { minWarmth };
@@ -174,6 +204,9 @@ function buildLayeredOutfit(
   const tops = clothingDatabase.items.filter((item) => item.category === "top");
   const bottoms = clothingDatabase.items.filter((item) => item.category === "bottom");
   const outers = clothingDatabase.items.filter((item) => item.category === "outerwear");
+  const outerTopCandidates = filterByLayerPreference(tops, [Layers.Mid]);
+  const outerBottomCandidates = filterByLayerPreference(bottoms, [Layers.Mid]);
+  const outerwearCandidates = filterByLayerPreference(outers, [Layers.Outer]);
   const shoes = pickBestShoes(clothingDatabase.items);
   const socks = pickSocks(clothingDatabase.items);
 
@@ -194,20 +227,20 @@ function buildLayeredOutfit(
 
   if (outerTop && usedIds.has(outerTop.id)) {
     const target = outerPlan.maxWarmth ?? outerTop.warmth;
-    outerTop = pickClosestByWarmthExcluding(tops, target, usedIds);
+    outerTop = pickClosestByWarmthExcluding(outerTopCandidates, target, usedIds);
   }
   if (outerTop) usedIds.add(outerTop.id);
 
   if (outerBottom && usedIds.has(outerBottom.id)) {
     const target = outerPlan.maxWarmth ?? outerBottom.warmth;
-    outerBottom = pickClosestByWarmthExcluding(bottoms, target, usedIds);
+    outerBottom = pickClosestByWarmthExcluding(outerBottomCandidates, target, usedIds);
   }
   if (outerBottom) usedIds.add(outerBottom.id);
 
   let overlayer = outerPlan.overlayer;
   if (overlayer && usedIds.has(overlayer.id)) {
     const target = outerPlan.maxWarmth ?? overlayer.warmth;
-    overlayer = pickClosestByWarmthExcluding(outers, target, usedIds);
+    overlayer = pickClosestByWarmthExcluding(outerwearCandidates, target, usedIds);
   }
   if (overlayer) usedIds.add(overlayer.id);
 

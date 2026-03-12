@@ -637,6 +637,102 @@
                                        "daily",
                                        "outdoor"
                                    ]
+                  },
+                  {
+                      "id":  "accessory-socks-cotton-ankle",
+                      "name":  "Cotton Ankle Socks",
+                      "category":  "accessory",
+                      "layer":  0,
+                      "gender":  [
+                                     "women",
+                                     "men",
+                                     "unisex"
+                                 ],
+                      "warmth":  1,
+                      "windchillPrevention":  0,
+                      "waterResistance":  0,
+                      "breathability":  8,
+                      "style":  [
+                                    "casual",
+                                    "minimal"
+                                ],
+                      "complements":  [
+                                          "shoe-sneaker",
+                                          "shoe-runner"
+                                      ],
+                      "weatherTags":  [
+                                          "mild",
+                                          "warm"
+                                      ],
+                      "formality":  "casual",
+                      "activity":  [
+                                       "daily",
+                                       "commute"
+                                   ]
+                  },
+                  {
+                      "id":  "accessory-socks-thermal",
+                      "name":  "Thermal Socks",
+                      "category":  "accessory",
+                      "layer":  0,
+                      "gender":  [
+                                     "women",
+                                     "men",
+                                     "unisex"
+                                 ],
+                      "warmth":  4,
+                      "windchillPrevention":  2,
+                      "waterResistance":  1,
+                      "breathability":  4,
+                      "style":  [
+                                    "utility",
+                                    "winter"
+                                ],
+                      "complements":  [
+                                          "shoe-boot-waterproof",
+                                          "outer-puffer-mid"
+                                      ],
+                      "weatherTags":  [
+                                          "cold",
+                                          "windy"
+                                      ],
+                      "formality":  "casual",
+                      "activity":  [
+                                       "outdoor",
+                                       "daily"
+                                   ]
+                  },
+                  {
+                      "id":  "accessory-socks-crew-sport",
+                      "name":  "Sport Crew Socks",
+                      "category":  "accessory",
+                      "layer":  0,
+                      "gender":  [
+                                     "women",
+                                     "men",
+                                     "unisex"
+                                 ],
+                      "warmth":  2,
+                      "windchillPrevention":  1,
+                      "waterResistance":  0,
+                      "breathability":  7,
+                      "style":  [
+                                    "sporty",
+                                    "casual"
+                                ],
+                      "complements":  [
+                                          "shoe-runner",
+                                          "bottom-jogger"
+                                      ],
+                      "weatherTags":  [
+                                          "mild",
+                                          "humid"
+                                      ],
+                      "formality":  "casual",
+                      "activity":  [
+                                       "walking",
+                                       "gym"
+                                   ]
                   }
               ]
 }

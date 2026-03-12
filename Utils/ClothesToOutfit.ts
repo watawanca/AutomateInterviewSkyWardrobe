@@ -149,18 +149,20 @@ const meetsWeatherConditions = (items: ClothingItem[]): boolean => {
     if (outer) warmthValues.push(outer.warmth);
     const averageWarmth = warmthValues.reduce((sum, value) => sum + value, 0) / warmthValues.length;
 
-    if (
-      summaryMatches.warmthMinTemp !== undefined &&
-      averageWarmth < summaryMatches.warmthMinTemp
-    ) {
-      return false;
-    }
+    const minTarget = summaryMatches.warmthMinTemp;
+    const maxTarget = summaryMatches.warmthMaxTemp;
 
-    if (
-      summaryMatches.warmthMaxTemp !== undefined &&
-      averageWarmth > summaryMatches.warmthMaxTemp
-    ) {
-      return false;
+    if (minTarget !== undefined && maxTarget !== undefined) {
+      const low = Math.min(minTarget, maxTarget);
+      const high = Math.max(minTarget, maxTarget);
+
+      if (averageWarmth < low) {
+        return false;
+      }
+
+      if (averageWarmth > high) {
+        return false;
+      }
     }
   }
 

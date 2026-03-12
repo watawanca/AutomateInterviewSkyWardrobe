@@ -88,6 +88,62 @@ const filterByLayerPreference = (
   return preferred.length > 0 ? preferred : items;
 };
 
+const preferComplementMatches = (items: ClothingItem[]): ClothingItem[] => {
+  const byKey = new Map<string, ClothingItem[]>();
+  for (const item of items) {
+    const key = `${item.layer}:${item.category}`;
+    const list = byKey.get(key) ?? [];
+    list.push(item);
+    byKey.set(key, list);
+  }
+
+  const allIds = new Set(items.map((item) => item.id));
+  const complementScore = (item: ClothingItem): number => {
+    let score = 0;
+    for (const id of item.complements ?? []) {
+      if (allIds.has(id)) score += 1;
+    }
+    for (const other of items) {
+      if (other.id === item.id) continue;
+      if ((other.complements ?? []).includes(item.id)) score += 1;
+    }
+    return score;
+  };
+
+  const preferred: ClothingItem[] = [];
+  for (const candidates of byKey.values()) {
+    if (candidates.length === 1) {
+      preferred.push(candidates[0]);
+      continue;
+    }
+
+    let best = candidates[0];
+    let bestScore = complementScore(best);
+    for (const candidate of candidates.slice(1)) {
+      const score = complementScore(candidate);
+      if (score > bestScore) {
+        best = candidate;
+        bestScore = score;
+      }
+    }
+    preferred.push(best);
+  }
+
+  return preferred;
+};
+
+const resolveItemForSlot = (
+  normalizedItems: ClothingItem[],
+  original?: ClothingItem,
+): ClothingItem | undefined => {
+  if (!original) return undefined;
+  const exact = normalizedItems.find((item) => item.id === original.id);
+  if (exact) return exact;
+  return normalizedItems.find(
+    (item) => item.category === original.category && item.layer === original.layer,
+  );
+};
+
 // Build a warmer outer layer plan for the max temperature target.
 function buildWarmthLayerForMaxWarmth(maxWarmth?: number): WarmthLayerPlan {
   if (maxWarmth === undefined) return {};
@@ -254,13 +310,22 @@ function buildLayeredOutfit(
   addUnique(shoes);
   addUnique(socks);
 
+  const normalizedItems = preferComplementMatches(items);
+  const resolvedInnerTop = resolveItemForSlot(normalizedItems, inner.top);
+  const resolvedInnerBottom = resolveItemForSlot(normalizedItems, inner.bottom);
+  const resolvedOuterTop = resolveItemForSlot(normalizedItems, outer.top);
+  const resolvedOuterBottom = resolveItemForSlot(normalizedItems, outer.bottom);
+  const resolvedOverlayer = resolveItemForSlot(normalizedItems, overlayer);
+  const resolvedShoes = resolveItemForSlot(normalizedItems, shoes);
+  const resolvedSocks = resolveItemForSlot(normalizedItems, socks);
+
   return {
-    inner,
-    outer,
-    overlayer,
-    shoes,
-    socks,
-    items,
+    inner: { top: resolvedInnerTop, bottom: resolvedInnerBottom },
+    outer: { top: resolvedOuterTop, bottom: resolvedOuterBottom },
+    overlayer: resolvedOverlayer,
+    shoes: resolvedShoes,
+    socks: resolvedSocks,
+    items: normalizedItems,
   };
 }
 

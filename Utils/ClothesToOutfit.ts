@@ -186,18 +186,30 @@ const rawComplementOutfits: ComplementOutfit[] = layeredItems
       items: normalizedItems,
     };
   })
-  .filter((outfit): outfit is ComplementOutfit => Boolean(outfit))
-  .filter((outfit) => outfit.complements.length > 0 || outfit.base.category === "shoes")
-  .filter((outfit) => isCompleteOutfit(outfit.items))
-  .filter((outfit) => hasUniqueCategoryPerLayer(outfit.items))
-  .filter((outfit) => meetsWeatherConditions(outfit.items));
+  .filter((outfit): outfit is ComplementOutfit => Boolean(outfit));
+
+const withComplements = rawComplementOutfits.filter(
+  (outfit) => outfit.complements.length > 0 || outfit.base.category === "shoes",
+);
+const withMinimum = withComplements.filter((outfit) => isCompleteOutfit(outfit.items));
+const withUnique = withMinimum.filter((outfit) => hasUniqueCategoryPerLayer(outfit.items));
+const withWeather = withUnique.filter((outfit) => meetsWeatherConditions(outfit.items));
+
+console.log("[ClothesToOutfit] Outfit counts:", {
+  layeredItems: layeredItems.length,
+  raw: rawComplementOutfits.length,
+  withComplements: withComplements.length,
+  withMinimum: withMinimum.length,
+  withUnique: withUnique.length,
+  withWeather: withWeather.length,
+});
 
 // Remove duplicate outfits by normalizing item IDs.
 export const complementOutfits: ComplementOutfit[] = (() => {
   const seen = new Set<string>();
   const deduped: ComplementOutfit[] = [];
 
-  for (const outfit of rawComplementOutfits) {
+  for (const outfit of withWeather) {
     const key = outfit.items
       .map((item) => item.id)
       .sort()

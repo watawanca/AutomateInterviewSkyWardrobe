@@ -22,6 +22,52 @@ type ComplementOutfit = {
 // Below this warmth target, require socks in the minimal outfit.
 const SOCKS_REQUIRED_WARMTH = 4;
 
+const pickFirstByIds = (
+  candidates: ClothingItem[],
+  preferredIds: Set<string>,
+): ClothingItem | undefined => {
+  const preferred = candidates.find((item) => preferredIds.has(item.id));
+  return preferred ?? candidates[0];
+};
+
+const completeOutfit = (
+  items: ClothingItem[],
+  preferredIds: Set<string>,
+): ClothingItem[] | null => {
+  const result = [...items];
+
+  const addIfMissing = (category: string, layer: number) => {
+    if (result.some((item) => item.category === category && item.layer === layer)) return;
+    const candidates = layeredItems.filter(
+      (item) => item.category === category && item.layer === layer,
+    );
+    const pick = pickFirstByIds(candidates, preferredIds);
+    if (pick) result.push(pick);
+  };
+
+  addIfMissing("top", Layers.Main);
+  addIfMissing("bottom", Layers.Main);
+  addIfMissing("shoes", Layers.Outer);
+
+  const warmthMin = summaryMatches.warmthMinTemp ?? 0;
+  const requiresSocks = warmthMin <= SOCKS_REQUIRED_WARMTH;
+  if (requiresSocks) {
+    const hasSocks = result.some(
+      (item) => item.layer === Layers.Base && item.category === "accessory",
+    );
+    if (!hasSocks) {
+      const sockCandidates = layeredItems.filter(
+        (item) => item.layer === Layers.Base && item.category === "accessory",
+      );
+      const socks = pickFirstByIds(sockCandidates, preferredIds);
+      if (!socks) return null;
+      result.push(socks);
+    }
+  }
+
+  return result;
+};
+
 // Enforce the minimum outfit: main-layer top/bottom + outer-layer shoes (+ socks if cold).
 const isCompleteOutfit = (items: ClothingItem[]): boolean => {
   const hasTop = items.some((item) => item.category === "top" && item.layer === Layers.Main);
@@ -106,13 +152,18 @@ const rawComplementOutfits: ComplementOutfit[] = layeredItems
       .map((id) => layeredById.get(id))
       .filter((match): match is ClothingItem => Boolean(match));
 
+    const preferredIds = new Set<string>([item.id, ...complements.map((c) => c.id)]);
+    const completedItems = completeOutfit([item, ...complements], preferredIds);
+    if (!completedItems) return null;
+
     return {
       base: item,
       complements,
-      items: [item, ...complements],
+      items: completedItems,
     };
   })
-  .filter((outfit) => outfit.complements.length > 0)
+  .filter((outfit): outfit is ComplementOutfit => Boolean(outfit))
+  .filter((outfit) => outfit.complements.length > 0 || outfit.base.category === "shoes")
   .filter((outfit) => isCompleteOutfit(outfit.items))
   .filter((outfit) => hasUniqueCategoryPerLayer(outfit.items))
   .filter((outfit) => meetsWeatherConditions(outfit.items));

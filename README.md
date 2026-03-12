@@ -14,8 +14,7 @@
 > [!note] Commands To Run
 > `npm run build` to start off
 > `npm run weather:update` to update the om_summary.json from current weather data
-> ~~`npx tsx Utils\ClothesListGen` to pull up the full list of clothes~~
-> `npx tsx Utils/ClothesToOutfit.ts` to print outfit lists
+> `npx tsx Utils\ClothesListGen` to pull up the full list of clothes
 
 # Layer Scale (0-4)
 0: Thermal underlayers/underwear (includes socks; often empty)

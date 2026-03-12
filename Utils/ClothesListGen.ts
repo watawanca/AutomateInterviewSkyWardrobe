@@ -296,7 +296,22 @@ const viableItems = getRecommendedByCategory();
 
 console.log("[ClothesListGen] Viable item count:", viableItems.length);
 
+const warmthInnerLayerPlan = buildWarmthLayerForMinWarmth(summaryMatches.warmthMinTemp);
+const warmthLayerPlan = buildWarmthLayerForMaxWarmth(summaryMatches.warmthMaxTemp);
+const layeredOutfit = buildLayeredOutfit(warmthInnerLayerPlan, warmthLayerPlan);
+
+console.log("[ClothesListGen] Inner layer plan:", warmthInnerLayerPlan);
+console.log("[ClothesListGen] Outer layer plan:", warmthLayerPlan);
+console.log("[ClothesListGen] Layered outfit:", layeredOutfit);
+console.log(
+  "[ClothesListGen] Layered outfit items:",
+  layeredOutfit.items.map((item) => `${item.name} (${item.category}, layer ${item.layer})`),
+);
+
 export const clothesListGenOutput = {
   summaryMatches,
   viableItems,
+  warmthInnerLayerPlan,
+  warmthLayerPlan,
+  layeredOutfit,
 };
